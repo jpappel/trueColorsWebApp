@@ -1,0 +1,4 @@
+sudo systemctl stop true_colors.service
+git pull origin main
+sudo systemctl start true_colors.service
+
