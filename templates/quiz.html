@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <title>True Colors Personality Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+     <!-- Welcome panel -->
+     <div id="welcome_panel" class="fade-in">
+        <h1>Welcome, {{ user_name }}!</h1>
+        <p id="loading_message">Preparing the quiz<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></p>
+    </div>
+
+    <!-- Test start panel, only thing that should be displayed when test begins -->
+    <div class="test_starter fade-in" id="start_panel">
+        <h2 id="test_title">True Colors Personality Test</h2>
+        <!-- Instructions for the test -->
+        <p>In each section of the test, you will rank four groups of words based on how much you think they describe you.</p>
+        <p>Read each of the words and decide which group describes you best. Give that group a 4.</p>
+        <p>Then rank the next three groups from 3 to 1 by descending preference. Each group MUST be ranked before moving on 
+            to the next section, with 4 meaning "the most like you" to 1 meaning "the least like you."</p>
+        <p>After each group has been ranked, press the "next" button to continue this process with the next set of words until the test is complete.</p>
+        <em><strong>Make sure your decisions are final before proceeding to the next section.</em></strong>
+    
+        <!-- Dropdown for """""" location """"""" -->
+        <br>
+        <label for="quiz_location" id="quiz_location_label">Where are you taking this quiz?</label>
+        <select id="quiz_location" name="quiz_location">
+            <option value="Choose_Location">Choose Your Location</option>
+            <option value="Home">Home</option>
+            <option value="College">College</option>
+            <option value="Other">Other</option>
+        </select>
+    
+        <!-- "Begin Test" button-->
+        <button type="button", class="special_button" id="start_button">Resume Test</button>
+
+        <!-- "Logout" button-->
+        <div>
+            <a href="{{ url_for('logout') }}"><button type="button", class="special_button" id="verify_button">Logout</button></a>
+        </div>
+    </div>
+
+    <!-- Container div for current questions, displays after test begins -->
+    <div id="test_container">
+        <button class="button" id="back_button">View Instructions</button>
+        
+        <!-- Each question block has a header, option buttons, and group of words -->
+        <div class="question_block">
+            <h2 id="letter_1">Letter</h2>
+            <input type="radio" name="answer" class="answer" id="4" onchange="updateSessionA('4')">
+            <label for="4" id="four_button">4</label>
+            <input type="radio" name="answer" class="answer" id="3" onchange="updateSessionA('3')">
+            <label for="3" id="three_button">3</label>
+            <input type="radio" name="answer" class="answer" id="2" onchange="updateSessionA('2')">
+            <label for="2" id="two_button">2</label>
+            <input type="radio" name="answer" class="answer" id="1" onchange="updateSessionA('1')">
+            <label for="1" id="one_button">1</label>
+            <ul>
+                <li id="a_word_1">MY_WORD</li>
+                <li id="a_word_2">MY_WORD</li>
+                <li id="a_word_3">MY_WORD</li>
+            </ul>
+        </div>
+
+        <div class="question_block">
+            <h2 id="letter_2">Letter</h2>
+            <input type="radio" name="answerB" class="answer" id="4" onchange="updateSessionB('4')">
+            <label for="4" id="four_button">4</label>
+            <input type="radio" name="answerB" class="answer" id="3" onchange="updateSessionB('3')">
+            <label for="3" id="three_button">3</label>
+            <input type="radio" name="answerB" class="answer" id="2" onchange="updateSessionB('2')">
+            <label for="2" id="two_button">2</label>
+            <input type="radio" name="answerB" class="answer" id="1" onchange="updateSessionB('1')">
+            <label for="1" id="one_button">1</label>
+            <ul>
+                <li id="b_word_1">MY_WORD</li>
+                <li id="b_word_2">MY_WORD</li>
+                <li id="b_word_3">MY_WORD</li>
+            </ul>
+        </div>
+
+        <div class="question_block">
+            <h2 id="letter_3">Letter</h2>
+            <input type="radio" name="answerC" class="answer" id="4" onchange="updateSessionC('4')">
+            <label for="4" id="four_button">4</label>
+            <input type="radio" name="answerC" class="answer" id="3" onchange="updateSessionC('3')">
+            <label for="3" id="three_button">3</label>
+            <input type="radio" name="answerC" class="answer" id="2" onchange="updateSessionC('2')">
+            <label for="2" id="two_button">2</label>
+            <input type="radio" name="answerC" class="answer" id="1" onchange="updateSessionC('1')">
+            <label for="1" id="one_button">1</label>
+            <ul>
+                <li id="c_word_1">MY_WORD</li>
+                <li id="c_word_2">MY_WORD</li>
+                <li id="c_word_3">MY_WORD</li>
+            </ul>
+        </div>
+
+        <div class="question_block">
+            <h2 id="letter_4">Letter</h2>
+            <input type="radio" name="answerD" class="answer" id="4" onchange="updateSessionD('4')">
+            <label for="4" id="four_button">4</label>
+            <input type="radio" name="answerD" class="answer" id="3" onchange="updateSessionD('3')">
+            <label for="3" id="three_button">3</label>
+            <input type="radio" name="answerD" class="answer" id="2" onchange="updateSessionD('2')">
+            <label for="2" id="two_button">2</label>
+            <input type="radio" name="answerD" class="answer" id="1" onchange="updateSessionD('1')">
+            <label for="1" id="one_button">1</label>
+            <ul>
+                <li id="d_word_1">MY_WORD</li>
+                <li id="d_word_2">MY_WORD</li>
+                <li id="d_word_3">MY_WORD</li>
+            </ul>
+        </div>
+
+        <button class="button" id="submit_button">Next</button>
+    </div>
+
+    <!-- Results panel, appears once test is completed -->
+    <div class="results fade-in" id="results_panel">
+        <h2 id="results_title">Your Dominant Color is...</h2>
+        <!-- Color result goes here -->
+        <h2 id="user_result">MY_COLOR_HERE</h2>
+        <!-- "Learn More" button-->
+        <button type="button" class="special_button" id="info_button">Learn more about your color!</button>
+        <!-- "Show Full Results button"-->
+        <button type="button" class="special_button" id="full_results_button">Show Full Results</button>
+        <!-- "Show Pie Chart" button-->
+        <button type="button" class="special_button" id="pie_button">Show Pie Chart</button>
+         <!-- "Retake Test" button-->
+        <button type="button" class="special_button" id="retake_button">Back to Home</button>
+
+        <!-- Pie chart that displays the user's distribution of color -->
+        <canvas id="distributionPieChart" width="200" height="200"></canvas>
+
+    </div>
+
+    <div class="pie_chart fade-in" id="pie_chart_container">
+        <!-- Pie chart that displays the user's color TEST-->
+        <canvas id="pieChart" width="500" height="500"></canvas>
+        <button class="button" id="back_button_pie">Back to result page</button>
+    </div>
+
+    <!-- Info panel that describes what the user's color means -->
+    <div class="info fade-in" id="info_panel">
+        <!-- Color description goes here -->
+        <p id="user_description">MY_DESCRIPTION_HERE</p>
+        <button class="special_button" id="back_button_info">Back to result page</button>
+    </div>
+
+    <div class="full_results fade-in" id="full_results_panel">
+        <h2 id="full_results_title">Full Results</h2>
+        <p id="full_results_text">MY_FULL_RESULTS_HERE</p>
+        <button class="special_button" id="back_button_full">Back to result page</button>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        function radioButtonLocalStorage() {
+            // Retrieve saved selections from local storage
+            const savedSelectionA = localStorage.getItem('radioSelectionA');
+            const savedSelectionB = localStorage.getItem('radioSelectionB');
+            const savedSelectionC = localStorage.getItem('radioSelectionC');
+            const savedSelectionD = localStorage.getItem('radioSelectionD');
+
+            const blocks = document.querySelectorAll(".question_block");
+            
+            // If there are saved selections, update the radio buttons
+            if (savedSelectionA !== null) {
+                blocks[0].querySelector(`[id="${savedSelectionA}"]`).checked = true;
+            }
+
+            if (savedSelectionB !== null) {
+                blocks[1].querySelector(`[id="${savedSelectionB}"]`).checked = true;
+            }
+
+            if (savedSelectionC !== null) {
+                blocks[2].querySelector(`[id="${savedSelectionC}"]`).checked = true;
+            }
+
+            if (savedSelectionD !== null) {
+                blocks[3].querySelector(`[id="${savedSelectionD}"]`).checked = true;
+            }
+        }
+
+        function updateSessionA(counterValue) {
+            // Save the current selection to local storage
+            localStorage.setItem('radioSelectionA', counterValue);
+        }
+
+        function updateSessionB(counterValue) {
+            // Save the current selection to local storage
+            localStorage.setItem('radioSelectionB', counterValue);
+        }
+
+        function updateSessionC(counterValue) {
+            // Save the current selection to local storage
+            localStorage.setItem('radioSelectionC', counterValue);
+        }
+
+        function updateSessionD(counterValue) {
+            // Save the current selection to local storage
+            localStorage.setItem('radioSelectionD', counterValue);
+        }
+    </script>
+    <script>
+        // Show welcome panel for a few seconds, then transition to the start panel
+        window.onload = function() {
+            setTimeout(function() {
+                document.getElementById('welcome_panel').style.display = 'none';
+                document.getElementById('start_panel').style.display = 'block';
+            }, 3000); // Show welcome panel for 3 seconds
+        };
+    </script>
+</body>
+</html>
