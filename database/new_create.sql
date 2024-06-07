@@ -8,15 +8,13 @@ CREATE TABLE IF NOT EXISTS questions (
     question_num INT(5),
     group_num INT(5),
     word_num INT(5),
-    word VARCHAR(255),
-    PRIMARY KEY (word)
+    word VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS session ( 
     user_id VARCHAR(50),
     name VARCHAR(50),
-    email VARCHAR(50),
-    PRIMARY KEY (email)
+    email VARCHAR(50)
 );
 
 CREATE TABLE IF NOT EXISTS responses (
@@ -24,15 +22,13 @@ CREATE TABLE IF NOT EXISTS responses (
     test_id INT(5),
     question_num INT(5),
     group_num INT(5),
-    score INT(1),
-    PRIMARY KEY (user_id)
+    score INT(1)
 );
 
 CREATE TABLE IF NOT EXISTS quiz (
     user_id VARCHAR(255),
     test_id INT(5),
-    description VARCHAR(255),
-    PRIMARY KEY (user_id)
+    description VARCHAR(255)
 );
 
 -- Create command "SELECT * FROM ordered_questions;" to view each question in order of appearance
