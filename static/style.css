@@ -119,8 +119,8 @@ ul li {
   border-radius: 50px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  width: 450px;
-  height: 620px;
+  width: 800; /* 450px */
+  height: 620; /* 620px */
   max-width: 100%;
 }
 
@@ -196,4 +196,9 @@ ul li {
 #quiz_location_label {
   font-size: 18px;
   font-weight: bold;
+}
+
+#distributionPieChart {
+  /* How can I move it to the right? */
+  margin-left: 20%;
 }

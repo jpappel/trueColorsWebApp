@@ -5,9 +5,10 @@ const results_panel = document.getElementById('results_panel');
 const info_panel = document.getElementById('info_panel');
 const pie_chart = document.getElementById('pie_chart_container');
 const full_results_panel = document.getElementById('full_results_panel');
-const location_button = document.getElementById('quiz_location')
-const location_button_label = document.getElementById('quiz_location_label')
+const location_button = document.getElementById('quiz_location');
+const location_button_label = document.getElementById('quiz_location_label');
 let myChart;
+let color_distribution_chart;
 
 test_container.style.display = 'none';
 results_panel.style.display = 'none';
@@ -448,6 +449,78 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// Function to try and save score to the database
+function sendResults() {
+    const results = [];
+    for (let questionNum = 1; questionNum <= 5; questionNum++) {
+        const groupScores = JSON.parse(localStorage.getItem(`answers_${questionNum}`));
+        if (groupScores) {
+            for (let groupNum = 0; groupNum < groupScores.length; groupNum++) {
+                results.push({
+                    question_num: questionNum,
+                    group_num: groupNum + 1,
+                    score: groupScores[groupNum]
+                });
+            }
+        } else {
+            console.error(`No data found for answers_${questionNum} in localStorage`);
+        }
+    }
+    console.log("Results in sendResults: " + JSON.stringify(results));
+
+    fetch('/storeResult', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            results: results,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+function renderDistributionChart() {
+
+    // Attempt to make pie chart
+
+    const labels = ['Orange', 'Blue', 'Gold', 'Green'];
+    const counts = getScores();
+
+    const chart = document.getElementById('distributionPieChart').getContext('2d');
+        color_distribution_chart = new Chart(chart, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: counts,
+                    backgroundColor: labels, // Background Colors
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false, // This line and above are to make the chart not automatically resize
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Your color distribution',
+                        color: 'black',
+                        weight: 'bold',
+                        font: {
+                            size: 30,
+                        }
+                    }
+                }
+            }
+        });    
+}
+
 // Function to display the results panel and store the user's result in the database
 function displayResults() {
 
@@ -461,15 +534,9 @@ function displayResults() {
     user_result.textContent = result_color;
     user_result.style = `color: ${result_color}`;
 
-    
-    // Store user's result in database
-    fetch(`/storeResult/${result_color}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({result: result_color})
-    }); 
+    renderDistributionChart();
+
+    sendResults();
     
     localStorage.removeItem('currentGroup');
     removeRadioSelectionsFromLS();

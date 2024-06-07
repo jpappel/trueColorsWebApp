@@ -60,44 +60,57 @@ def get_questions():
 
     return jsonify(questions)
     
-@app.route('/storeResult/<result>', methods=['POST'])
-def store_result(result):
+@app.route('/storeResult', methods=['POST'])
+def store_result():
     '''
     Stores the user's color result in the database.
     '''
     id = getId()
-    valid_colors = ["ORANGE", "GOLD", "BLUE", "GREEN"]
+    data = request.get_json()
+    results = data['results']
+    print(results)
 
-    if result in valid_colors:
-        cursor, connection = connectToMySQL()
+    cursor, connection = connectToMySQL()
 
-        # MySQL queries
-        use_db = "USE test_db;"
-        select = "SELECT * FROM user_colors WHERE user_id = %s;"
+    # MySQL query to insert or update each group score
+    use_db = "USE TrueColors;"
+    cursor.execute(use_db)
 
-        update = "UPDATE user_colors SET result_color = %s WHERE user_id = %s;"
-        insert = "INSERT INTO user_colors (user_id, result_color) VALUES (%s, %s);"
+    for result in results:
+        print(result)
+        question_num = result['question_num']
+        group_num = result['group_num']
+        score = result['score']
 
-        cursor.execute(use_db)
-        cursor.execute(select, (id,))
-        existing_user = cursor.fetchone() # Check if user already exists
+        select_query = """
+        SELECT * FROM responses 
+        WHERE user_id = %s AND test_id = %s AND question_num = %s AND group_num = %s;
+        """
+        # UPDATE TEST ID TO NOT JUST BE 1 
+        cursor.execute(select_query, (id, 1, question_num, group_num)) # 1 is the test Id, update when we figure that out
+        existing_record = cursor.fetchone()
 
-        # If user already exists, update result_color
-        if existing_user:
-            cursor.execute(update, (result, id))
-
-        # If user doesn't exist, insert new result_color
+        if existing_record:
+            update_query = """
+            UPDATE responses 
+            SET score = %s 
+            WHERE user_id = %s AND test_id = %s AND question_num = %s AND group_num = %s;
+            """
+            # UPDATE TEST ID TO NOT JUST BE 1
+            cursor.execute(update_query, (score, id, 1, question_num, group_num)) # 1 is the test Id, update when we figure that out
         else:
-            cursor.execute(insert, (id, result))
+            insert_query = """
+            INSERT INTO responses (user_id, test_id, question_num, group_num, score) 
+            VALUES (%s, %s, %s, %s, %s);
+            """
+            # UPDATE TEST ID TO NOT JUST BE 1
+            cursor.execute(insert_query, (id, 1, question_num, group_num, score)) # 1 is the test Id, update when we figure that out
 
-        connection.commit()
-        cursor.close()
-        connection.close()
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-        return "Color updated successfully.", 200
-        
-    else:
-        return "Color not updated. Result does not exist.", 400
+    return jsonify({'message': 'Scores updated successfully'}), 200
     
 @app.route('/save_location', methods=['POST'])
 def save_location():
