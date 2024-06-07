@@ -186,6 +186,10 @@ If successful, you should be able to enter the IP address of the EC2 instance in
 
 Document new stuff!!!
 
+In order to make the database work I had to use this command
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your_password';
+FLUSH PRIVILEGES;
+
 
 
 

@@ -145,34 +145,7 @@ ul li {
   max-width: 100%;
 }
 
-.fade-in {
-  opacity: 0;
-  animation: fade-in 1s ease-in-out forwards;
-}
 
-@keyframes fade-in {
-  100% {
-      opacity: 1;
-  }
-}
-
-@keyframes fade-out {
-  0% {
-      opacity: 0;
-  }
-}
-
-@keyframes colorShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
 
 #back_button_pie {
   background-color: rgb(21, 180, 180);
@@ -257,6 +230,45 @@ ul li {
   position: relative;
 }
 
+#quiz_location {
+  width: 200px;
+  font-size: 16px;
+}
+
+#quiz_location_label {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fade-in 1s ease-in-out forwards;
+}
+
+@keyframes fade-in {
+  100% {
+      opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  0% {
+      opacity: 0;
+  }
+}
+
+@keyframes colorShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 @keyframes bounce {
   0%, 100% {
     transform: translateY(0);
@@ -282,3 +294,5 @@ ul li {
 .dot:nth-child(3) {
   animation-delay: 0.4s;
 }
+
+

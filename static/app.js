@@ -7,6 +7,8 @@ const info_panel = document.getElementById('info_panel');
 const pie_chart = document.getElementById('pie_chart_container');
 const full_results_panel = document.getElementById('full_results_panel');
 const welcome_panel = document.getElementById('welcome_panel');
+const location_button = document.getElementById('quiz_location')
+const location_button_label = document.getElementById('quiz_location_label')
 let myChart;
 
 start_panel.style.display = 'none';
@@ -97,13 +99,45 @@ async function loadQuestions() {
 // Event listener to start test and hide start panel
 start_button.addEventListener('click', () => {
 
-    
-    start_panel.style = 'display: none';
-    test_container.style = 'display: contents';
+    if (location_button.value === 'Choose_Location') {
+        alert("Please select a location before continuing.")
+        return;
+    }
 
-    loadQuestions();
+    localStorage.setItem('quizLocation', location_button.value);
 
-})
+    // Save the location to the database
+    fetch('/save_location', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ location: location_button.value })
+    })
+
+    .then(response => {
+        if (response.ok) {
+            console.log('Location saved successfully.');
+            // Redirect to the next part of the quiz or show a success message
+            start_panel.style = 'display: none';
+            test_container.style = 'display: contents';
+            location_button.style.display = 'none';
+            location_button_label.style.display = 'none';
+            loadQuestions();
+
+        } else {
+            console.log('Failed to save location.');
+        }
+    })
+    .catch(error => console.log('Error:', error));
+});
+
+function setDropdownValue() {
+    var storedLocation = localStorage.getItem('quizLocation');
+    if (storedLocation) {
+        location_button.value = storedLocation;
+    }
+}
 
 // Function to calculate the scores for each of the four colors
 function getScores() {
@@ -302,6 +336,12 @@ retake_button.addEventListener('click', () => {
     start_button.textContent = 'Begin Test';
     submit_button.textContent = 'Next';
 
+    // Reset dropdown value
+    location_button.value = 'Choose_Location';
+    
+    location_button.style.display = 'inline-block';
+    location_button_label.style.display = 'inline-block';
+
 })
 
 // Info button to hide results panel and display the color's description
@@ -400,6 +440,7 @@ function loadState() {
 // Actions to be performed when the page is loaded
 document.addEventListener('DOMContentLoaded', function () {
     radioButtonLocalStorage();
+    setDropdownValue();
 
     if (group === 1) {
         start_button.textContent = 'Begin Test';

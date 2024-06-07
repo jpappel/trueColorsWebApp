@@ -204,6 +204,36 @@ def store_result(result):
         
     else:
         return "Color not updated. Result does not exist.", 400
+    
+@app.route('/save_location', methods=['POST'])
+def save_location():
+    '''
+    Saves the user's quiz location to the database.
+    '''
+    location = request.json.get('location')
+    if not location:
+        return "No location provided.", 400
+
+    id = getId()
+    
+    cursor, connection = connectToMySQL()
+    
+    # MySQL queries
+    use_db = "USE TrueColors;"
+    insert_location = """
+    INSERT INTO quiz (user_id, test_id, description)
+    VALUES (%s, %s, %s)
+    ON DUPLICATE KEY UPDATE description = VALUES(description);
+    """
+
+    cursor.execute(use_db)
+    cursor.execute(insert_location, (id, 1, location)) # Have to update test_id from 1 to autoincrement
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return "Location saved successfully.", 200 
 
 @app.route('/fetch_data')
 def fetch_data():
