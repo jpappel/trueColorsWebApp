@@ -1,8 +1,15 @@
-from flask import Flask, jsonify, request, render_template, session
+from flask import Flask, abort, jsonify, redirect, request, session, render_template
+from dotenv import load_dotenv
 import dotenv
 import os
 import uuid
 import mysql.connector
+import pathlib
+from google_auth_oauthlib.flow import Flow
+from google.auth.transport.requests import Request
+from google.oauth2 import id_token
+import google.auth.transport.requests
+import pip._vendor.cachecontrol as cachecontrol  # Import cachecontrol
 
 dotenv.load_dotenv()
 if not os.getenv('FLASK_SECRET_KEY'):
@@ -11,6 +18,105 @@ if not os.getenv('FLASK_SECRET_KEY'):
 
 app = Flask(__name__)
 app.secret_key = 'secret'
+
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Only for testing purposes
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Google OAuth configuration
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+client_secrets_file = os.path.join(pathlib.Path(__file__).parent, 'client_secrets.json')
+
+flow = Flow.from_client_secrets_file(
+    client_secrets_file=client_secrets_file,
+    scopes=['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email', 'openid'],
+    redirect_uri='http://127.0.0.1:8000/callback')
+
+def login_is_required(function):
+    def wrapper(*args, **kwargs):
+        if 'google_id' not in session:  # Check if the user is logged in
+            return abort(401)  # If not, return 401 Unauthorized
+        else:
+            return function(*args, **kwargs)
+        
+    return wrapper
+
+@app.route('/quiz')
+@login_is_required
+def quiz():
+    user_name = session.get('name')
+    return render_template("quiz.html", user_name=user_name)
+    
+# Redirect user to Google content screen
+@app.route('/login')
+def login():
+    authorization_url, state = flow.authorization_url()
+    session['state'] = state
+    return redirect(authorization_url)
+
+# Receive data from Google endpoint
+@app.route('/callback')
+def callback():
+    flow.fetch_token(authorization_response=request.url)
+
+    if not session['state'] == request.args['state']:
+        return abort(500)  # State does not match!
+    
+    credentials = flow.credentials
+    request_session = flow.authorized_session()
+    cached_session = cachecontrol.CacheControl(request_session)  # Use cachecontrol
+    token_request = google.auth.transport.requests.Request(session=cached_session)
+
+    id_info = id_token.verify_oauth2_token(
+        id_token=credentials.id_token,
+        request=token_request,
+        audience=GOOGLE_CLIENT_ID)
+    
+    session['google_id'] = id_info.get('sub')
+    session['name'] = id_info.get('name')
+    session['email'] = id_info.get('email')
+    
+    cursor, cnx = connectToMySQL()
+    
+    try:
+        # Check if user already exists in the session table
+        query_check = "SELECT * FROM session WHERE email = %s"
+        cursor.execute(query_check, (session['email'],))
+        existing_user = cursor.fetchone() # Fetch the first row 
+        
+        if existing_user:
+            # Updates the existing user if necessary
+            query_update = "UPDATE session SET name = %s WHERE email = %s"
+            cursor.execute(query_update, (session['name'], session['email']))
+            cnx.commit()
+        else:
+            # Insert the new user if they do not exist in the session table
+            query_insert = "INSERT INTO session (user_id, name, email) VALUES (%s, %s, %s)"
+            cursor.execute(query_insert, (session['google_id'], session['name'], session['email']))
+            cnx.commit()
+        
+    except mysql.connector.Error as err:
+        print(f"Error during login: {err}")
+        cnx.rollback()  # Rollback the transaction in case of error
+        return abort(500)
+    
+    finally:
+        cursor.close()
+        cnx.close()
+        
+    return redirect('/quiz')
+
+# Clear login session from the user
+@app.route('/logout') 
+def logout():
+    session.clear()
+    return redirect('/')
+
+# Route to get session data
+@app.route('/session_data')
+def session_data():
+    return jsonify(dict(session))
 
 @app.route('/')
 def index():
@@ -98,8 +204,6 @@ def store_result(result):
         
     else:
         return "Color not updated. Result does not exist.", 400
-    
-    
 
 @app.route('/fetch_data')
 def fetch_data():
