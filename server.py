@@ -17,7 +17,7 @@ if not os.getenv('FLASK_SECRET_KEY'):
     exit(1)
 
 app = Flask(__name__)
-app.secret_key = 'secret'
+app.secret_key = os.getenv('FLASK_SECRET_KEY');
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Only for testing purposes
 
