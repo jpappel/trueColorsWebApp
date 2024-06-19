@@ -248,18 +248,102 @@ def save_location():
 
     return "Location saved successfully.", 200 
 
+def fetch_all_scores():
+    '''
+    Fetches all scores from the database and calculates the color scores for each user.
+    '''
+    cursor, connection = connectToMySQL()
+    use_db = "USE TrueColors;"
+    cursor.execute(use_db)
+    cursor.execute("""
+        SELECT user_id, test_id, question_num, group_num, score
+        FROM responses  -- Change this to your actual table name
+        ORDER BY user_id, test_id, question_num, group_num
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    # Initialize a dictionary to store scores for each (user_id, test_id) combination
+    user_test_scores = {}
+
+    # Populate the dictionary with scores
+    for row in rows:
+        user_id = row[0]
+        test_id = row[1]
+        key = (user_id, test_id)
+
+        if key not in user_test_scores:
+            user_test_scores[key] = {'score_orange': 0, 'score_blue': 0, 'score_gold': 0, 'score_green': 0}
+        
+        q_num = row[2]
+        g_num = row[3]
+        score = row[4]
+
+        # Calculate scores based on the given formula
+        if q_num == 1 and g_num == 1:
+            user_test_scores[key]['score_orange'] += score
+        elif q_num == 2 and g_num == 4:
+            user_test_scores[key]['score_orange'] += score
+        elif q_num == 3 and g_num == 3:
+            user_test_scores[key]['score_orange'] += score
+        elif q_num == 4 and g_num == 2:
+            user_test_scores[key]['score_orange'] += score
+        elif q_num == 5 and g_num == 3:
+            user_test_scores[key]['score_orange'] += score
+        
+        if q_num == 1 and g_num == 3:
+            user_test_scores[key]['score_blue'] += score
+        elif q_num == 2 and g_num == 2:
+            user_test_scores[key]['score_blue'] += score
+        elif q_num == 3 and g_num == 2:
+            user_test_scores[key]['score_blue'] += score
+        elif q_num == 4 and g_num == 3:
+            user_test_scores[key]['score_blue'] += score
+        elif q_num == 5 and g_num == 2:
+            user_test_scores[key]['score_blue'] += score
+
+        if q_num == 1 and g_num == 2:
+            user_test_scores[key]['score_gold'] += score
+        elif q_num == 2 and g_num == 3:
+            user_test_scores[key]['score_gold'] += score
+        elif q_num == 3 and g_num == 1:
+            user_test_scores[key]['score_gold'] += score
+        elif q_num == 4 and g_num == 1:
+            user_test_scores[key]['score_gold'] += score
+        elif q_num == 5 and g_num == 4:
+            user_test_scores[key]['score_gold'] += score
+
+        if q_num == 1 and g_num == 4:
+            user_test_scores[key]['score_green'] += score
+        elif q_num == 2 and g_num == 1:
+            user_test_scores[key]['score_green'] += score
+        elif q_num == 3 and g_num == 4:
+            user_test_scores[key]['score_green'] += score
+        elif q_num == 4 and g_num == 4:
+            user_test_scores[key]['score_green'] += score
+        elif q_num == 5 and g_num == 1:
+            user_test_scores[key]['score_green'] += score
+
+    # Convert the dictionary to a list of lists containing only the scores
+    result = [[value['score_orange'], value['score_blue'], value['score_gold'], value['score_green']] for value in user_test_scores.values()]
+    print("Color Results", result)
+    return result
+
+
 @app.route('/fetch_data')
 def fetch_data():
     '''
-    Fetches data from the database and returns it as JSON.
+    Uses the fetch_all_scores function to return all scores.
     '''
-    cursor, connection = connectToMySQL()
-    select = "SELECT result_color, COUNT(*) AS count FROM user_colors GROUP BY result_color"
-    cursor.execute(select)
-    data = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return jsonify(data)
+    try:
+        scores = fetch_all_scores()
+        print("Scores", scores)
+        return jsonify(scores)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 def connectToMySQL():
     '''
