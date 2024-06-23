@@ -55,6 +55,13 @@ def login():
     session['state'] = state
     return redirect(authorization_url)
 
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    response = jsonify(message="State does not match!", details="Provide more specific details here")
+    response.status_code = 500
+    return response
+
 # Receive data from Google endpoint
 @app.route('/callback')
 def callback():
