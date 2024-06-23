@@ -68,6 +68,8 @@ def callback():
     flow.fetch_token(authorization_response=request.url)
 
     if not session['state'] == request.args['state']:
+        print(session['state'])
+        print(request.args['state'])
         return abort(500)  # State does not match!
     
     credentials = flow.credentials
