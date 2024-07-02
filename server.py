@@ -10,6 +10,7 @@ from google.auth.transport.requests import Request
 from google.oauth2 import id_token
 import google.auth.transport.requests
 import pip._vendor.cachecontrol as cachecontrol  # Import cachecontrol
+import time
 
 dotenv.load_dotenv()
 if not os.getenv('FLASK_SECRET_KEY'):
@@ -31,7 +32,7 @@ client_secrets_file = os.path.join(pathlib.Path(__file__).parent, 'client_secret
 flow = Flow.from_client_secrets_file(
     client_secrets_file=client_secrets_file,
     scopes=['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email', 'openid'],
-    redirect_uri='http://127.0.0.1:8000/callback')
+    redirect_uri= os.getenv('REDIRECT_URI'))
 
 def login_is_required(function):
     def wrapper(*args, **kwargs):
@@ -61,12 +62,16 @@ def callback():
     flow.fetch_token(authorization_response=request.url)
 
     if not session['state'] == request.args['state']:
+        print(session['state'])
+        print(request.args['state'])
         return abort(500)  # State does not match!
     
     credentials = flow.credentials
     request_session = flow.authorized_session()
     cached_session = cachecontrol.CacheControl(request_session)  # Use cachecontrol
     token_request = google.auth.transport.requests.Request(session=cached_session)
+
+    time.sleep(1)  # Sleep for 1 second
 
     id_info = id_token.verify_oauth2_token(
         id_token=credentials.id_token,
@@ -197,8 +202,10 @@ def store_result():
         SELECT * FROM responses 
         WHERE user_id = %s AND test_id = %s AND question_num = %s AND group_num = %s;
         """
-        # UPDATE TEST ID TO NOT JUST BE 1 
-        cursor.execute(select_query, (id, new_test_id, question_num, group_num)) # 1 is the test Id, update when we figure that out
+        
+        test_id = """SELECT test_id FROM response_flags WHERE user_id = %s;"""
+
+        cursor.execute(select_query, (id, new_test_id, question_num, group_num))
         existing_record = cursor.fetchone()
 
         if existing_record:
@@ -207,15 +214,13 @@ def store_result():
             SET score = %s 
             WHERE user_id = %s AND test_id = %s AND question_num = %s AND group_num = %s;
             """
-            # UPDATE TEST ID TO NOT JUST BE 1
-            cursor.execute(update_query, (score, id, new_test_id, question_num, group_num)) # 1 is the test Id, update when we figure that out
+            cursor.execute(update_query, (score, id, new_test_id, question_num, group_num))
         else:
             insert_query = """
             INSERT INTO responses (user_id, test_id, question_num, group_num, score) 
             VALUES (%s, %s, %s, %s, %s);
             """
-            # UPDATE TEST ID TO NOT JUST BE 1
-            cursor.execute(insert_query, (id, new_test_id, question_num, group_num, score)) # 1 is the test Id, update when we figure that out
+            cursor.execute(insert_query, (id, new_test_id, question_num, group_num, score))
 
     connection.commit()
     cursor.close()
