@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS responses (
     test_id INT(5),
     question_num INT(5),
     group_num INT(5),
-    score INT(1)
+    score INT(1),
+    time_stamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS quiz (

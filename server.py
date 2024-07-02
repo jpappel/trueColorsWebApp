@@ -182,6 +182,11 @@ def store_result():
     use_db = "USE TrueColors;"
     cursor.execute(use_db)
 
+    # Retrieve the highest test_id and increment it by 1
+    cursor.execute("SELECT MAX(test_id) FROM responses")
+    last_test_id = cursor.fetchone()[0]
+    new_test_id = 1 if last_test_id is None else last_test_id + 1
+
     for result in results:
         print(result)
         question_num = result['question_num']
@@ -193,7 +198,7 @@ def store_result():
         WHERE user_id = %s AND test_id = %s AND question_num = %s AND group_num = %s;
         """
         # UPDATE TEST ID TO NOT JUST BE 1 
-        cursor.execute(select_query, (id, 1, question_num, group_num)) # 1 is the test Id, update when we figure that out
+        cursor.execute(select_query, (id, new_test_id, question_num, group_num)) # 1 is the test Id, update when we figure that out
         existing_record = cursor.fetchone()
 
         if existing_record:
@@ -203,14 +208,14 @@ def store_result():
             WHERE user_id = %s AND test_id = %s AND question_num = %s AND group_num = %s;
             """
             # UPDATE TEST ID TO NOT JUST BE 1
-            cursor.execute(update_query, (score, id, 1, question_num, group_num)) # 1 is the test Id, update when we figure that out
+            cursor.execute(update_query, (score, id, new_test_id, question_num, group_num)) # 1 is the test Id, update when we figure that out
         else:
             insert_query = """
             INSERT INTO responses (user_id, test_id, question_num, group_num, score) 
             VALUES (%s, %s, %s, %s, %s);
             """
             # UPDATE TEST ID TO NOT JUST BE 1
-            cursor.execute(insert_query, (id, 1, question_num, group_num, score)) # 1 is the test Id, update when we figure that out
+            cursor.execute(insert_query, (id, new_test_id, question_num, group_num, score)) # 1 is the test Id, update when we figure that out
 
     connection.commit()
     cursor.close()
