@@ -146,19 +146,19 @@ def get_questions():
     select = ""
 
     if request.args.get('group') == "1":
-        select = "SELECT * FROM ordered_questions WHERE question_num = 1;"
+        select = "SELECT * FROM questions WHERE question_num = 1 ORDER BY group_num;"
             
     elif request.args.get('group') == "2":
-        select = "SELECT * FROM ordered_questions WHERE question_num = 2;"
+        select = "SELECT * FROM questions WHERE question_num = 2 ORDER BY group_num;"
         
     elif request.args.get('group') == "3":
-        select = "SELECT * FROM ordered_questions WHERE question_num = 3;"
+        select = "SELECT * FROM questions WHERE question_num = 3 ORDER BY group_num;"
             
     elif request.args.get('group') == "4":
-        select = "SELECT * FROM ordered_questions WHERE question_num = 4;"
+        select = "SELECT * FROM questions WHERE question_num = 4 ORDER BY group_num;"
             
     else:
-        select = "SELECT * FROM ordered_questions WHERE question_num = 5;"
+        select = "SELECT * FROM questions WHERE question_num = 5 ORDER BY group_num;"
             
     cursor.execute(use_db)
     cursor.execute(select)
