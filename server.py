@@ -21,12 +21,12 @@ if not os.getenv('FLASK_SECRET_KEY'):
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
-
+user_id = session.get('user_id')
 # Set up Redis for session storage
 app.config['SESSION_TYPE'] = 'redis'  # Use Redis to store session data
 app.config['SESSION_PERMANENT'] = False  # Make sessions non-permanent (expire on browser close)
 app.config['SESSION_USE_SIGNER'] = True  # Sign session cookies for extra security
-app.config['SESSION_KEY_PREFIX'] = f'session:{session.get('user_id')}:'  # Prefix for session keys in Redis
+app.config['SESSION_KEY_PREFIX'] = f'session:{user_id}:'  # Prefix for session keys in Redis
 app.config['SESSION_REDIS'] = redis.StrictRedis(host='localhost', port=6379, db=2)  # Redis connection details
 Session(app)  # Initialize the session extension
 
