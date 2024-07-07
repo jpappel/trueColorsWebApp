@@ -90,7 +90,8 @@ def callback():
     id_info = id_token.verify_oauth2_token(
         id_token=credentials.id_token,
         request=token_request,
-        audience=GOOGLE_CLIENT_ID)
+        audience=GOOGLE_CLIENT_ID,
+        clock_skew_in_seconds=10) # Testing this to allow for some clock skew
     
     session['google_id'] = id_info.get('sub')
     session['name'] = id_info.get('name')
