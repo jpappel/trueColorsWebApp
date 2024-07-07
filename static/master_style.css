@@ -1,0 +1,110 @@
+@import url("https://fonts.googleapis.com/css?family=Poppins:200,700");
+
+* {
+  box-sizing: border-box;
+  text-align: center;
+}
+
+body {
+  background: linear-gradient(45deg, #ff4e50, #fc913a, #f9d423, #a8eb12, #50e3c2, #4a90e2, #9013fe);
+  background-size: 600% 600%;
+  animation: colorShift 15s ease infinite;
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+h2 {
+  padding: 1.1rem;
+  text-align: center;
+  margin: 0;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+ul li {
+  font-size: 1.2rem;
+  margin: 1rem 0;
+}
+
+.master_page {
+  padding: 4rem;
+  background-color: #fff;
+  border-radius: 50px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  width: 800px;
+  max-width: 100%;
+}
+
+.special_button {
+  background-color: rgb(21, 180, 180);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-family: inherit;
+  margin-top: 6%;
+  padding: 1.3rem;
+}
+
+.special_button:hover {
+  background-color: darkcyan;
+}
+
+.faculty_button {
+  background-color: rgb(21, 180, 180);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-family: inherit;
+  margin-top: 6%;
+  padding: 1.3rem;
+}
+
+@keyframes colorShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+
+}
+
+.data_table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px; /* Adjust margin as needed */
+}
+
+.data_table th, .data_table td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.data_title {
+  font-size: 1.5em;
+  margin-top: 20px;
+}
+

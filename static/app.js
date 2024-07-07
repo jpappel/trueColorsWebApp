@@ -183,6 +183,22 @@ function getHighestScore() {
     return highest_colors;
 }
 
+function getHighestScorePieChart(scores) {
+    const COLOR_NAMES = ["ORANGE", "BLUE", "GOLD", "GREEN"];
+
+    const highest_score = Math.max(...scores);
+
+    const highest_colors = [];
+    for (let i = 0; i < scores.length; i++) {
+        if (scores[i] === highest_score) {
+            // Assuming your color names are stored in a separate array
+            highest_colors.push(COLOR_NAMES[i]);
+        }
+    }
+
+    return highest_colors;
+}
+
 // Function to get the answers of the current group of words
 function getAnswers() {
 
@@ -559,9 +575,28 @@ function fetch_data() {
     fetch('/fetch_data')
     .then(response => response.json())
     .then(data => {
-        // Extract labels and counts from the JSON data
-        const labels = data.map(item => item[0]); // Extracting the first element of each inner array
-        const counts = data.map(item => item[1]); // Extracting the second element of each inner array
+        // Define the labels and initialize the counts for the pie chart
+        const labels = ["ORANGE", "BLUE", "GOLD", "GREEN"];
+        const colors = ["#FFA500", "#0000FF", "#FFD700", "#008000"]; // Colors for ORANGE, BLUE, GOLD, GREEN
+        const counts = {
+            "ORANGE": 0,
+            "BLUE": 0,
+            "GOLD": 0,
+            "GREEN": 0
+        };
+        console.log("Data: ", data)
+
+        // Iterate over the data and count the highest scores using getHighestScore
+        data.forEach(scores => {
+            console.log("Scores: ", scores)
+            const highest_colors = getHighestScorePieChart(scores);
+            highest_colors.forEach(color => {
+                counts[color]++;
+            });
+        });
+
+        // Prepare the data for the pie chart
+        const countValues = labels.map(label => counts[label]);
 
         // Render the pie chart
         const ctx = document.getElementById('pieChart').getContext('2d');
@@ -570,8 +605,8 @@ function fetch_data() {
             data: {
                 labels: labels,
                 datasets: [{
-                    data: counts,
-                    backgroundColor: labels, // Background Colors
+                    data: countValues,
+                    backgroundColor: colors, // Background Colors
                 }]
             },
             options: {
@@ -603,3 +638,10 @@ function destroyChart() {
         myChart.destroy();
     }
 };
+
+function destroyDistributionChart() {
+    if (color_distribution_chart) {
+        color_distribution_chart.destroy();
+    }
+};
+
