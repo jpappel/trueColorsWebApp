@@ -21,13 +21,13 @@ if not os.getenv('FLASK_SECRET_KEY'):
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
-user_id = session.get('user_id')
+
 # Set up Redis for session storage
 app.config['SESSION_TYPE'] = 'redis'  # Use Redis to store session data
 app.config['SESSION_PERMANENT'] = False  # Make sessions non-permanent (expire on browser close)
 app.config['SESSION_USE_SIGNER'] = True  # Sign session cookies for extra security
-app.config['SESSION_KEY_PREFIX'] = f'session:{user_id}:'  # Prefix for session keys in Redis
-app.config['SESSION_REDIS'] = redis.StrictRedis(host='localhost', port=6379, db=2)  # Redis connection details
+app.config['SESSION_KEY_PREFIX'] = 'session:'  # Prefix for session keys in Redis
+app.config['SESSION_REDIS'] = redis.StrictRedis(host='localhost', port=6379, db=1)  # Redis connection details
 Session(app)  # Initialize the session extension
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Only for testing purposes
@@ -84,6 +84,7 @@ def callback():
     request_session = flow.authorized_session()
     cached_session = cachecontrol.CacheControl(request_session)  # Use cachecontrol
     token_request = google.auth.transport.requests.Request(session=cached_session)
+
 
     id_info = id_token.verify_oauth2_token(
         id_token=credentials.id_token,
