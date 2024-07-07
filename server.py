@@ -250,7 +250,13 @@ def save_location():
     """
 
     cursor.execute(use_db)
-    cursor.execute(insert_location, (id, 1, location)) # Have to update test_id from 1 to autoincrement
+
+    # Retrieve the highest test_id and increment it by 1
+    cursor.execute("SELECT MAX(test_id) FROM quiz")
+    last_test_id = cursor.fetchone()[0]
+    new_test_id = 1 if last_test_id is None else last_test_id + 1
+
+    cursor.execute(insert_location, (id, new_test_id, location))
 
     connection.commit()
     cursor.close()
