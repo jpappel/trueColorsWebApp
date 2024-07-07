@@ -73,7 +73,7 @@ def callback():
     state_in_session = session.get('state')
     state_in_request = request.args.get('state')
 
-    if state_in_session == state_in_request:
+    if not state_in_session == state_in_request:
         print(state_in_session)
         print(state_in_request)
         return abort(500)  # State does not match!
