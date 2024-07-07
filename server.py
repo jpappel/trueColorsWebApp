@@ -27,7 +27,7 @@ app.config['SESSION_TYPE'] = 'redis'  # Use Redis to store session data
 app.config['SESSION_PERMANENT'] = False  # Make sessions non-permanent (expire on browser close)
 app.config['SESSION_USE_SIGNER'] = True  # Sign session cookies for extra security
 app.config['SESSION_KEY_PREFIX'] = 'session:'  # Prefix for session keys in Redis
-app.config['SESSION_REDIS'] = redis.StrictRedis(host='localhost', port=6379, db=0)  # Redis connection details
+app.config['SESSION_REDIS'] = redis.StrictRedis(host='localhost', port=6379, db=1)  # Redis connection details
 Session(app)  # Initialize the session extension
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Only for testing purposes
