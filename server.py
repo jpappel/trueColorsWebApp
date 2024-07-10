@@ -61,6 +61,9 @@ def login():
 def callback():
     flow.fetch_token(authorization_response=request.url)
 
+    print(session['state'])
+    print(request.args['state'])
+    
     if not session['state'] == request.args['state']:
         print(session['state'])
         print(request.args['state'])
@@ -361,6 +364,101 @@ def fetch_data():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+@app.route('/fetch_session_data')
+def fetch_session_data():
+    '''
+    Grabs the session data from the database and returns it.
+    '''
+    cursor, connection = connectToMySQL()
+    use_db = "USE TrueColors;"
+    cursor.execute(use_db)
+    cursor.execute("SELECT name, email FROM session;")
+    rows = cursor.fetchall()
+    connection.close()
+    return jsonify(rows)
+
+
+@app.route('/fetch_all_percentages')
+def fetch_all_percentages():
+    '''
+    Fetches all scores and calculates the color percentages for each user.
+    '''
+    try:
+        scores = fetch_all_scores()
+        cursor, connection = connectToMySQL()
+        use_db = "USE TrueColors;"
+        cursor.execute(use_db)
+        cursor.execute("SELECT name, email FROM session;")
+        session_data = cursor.fetchall()
+        connection.close()
+
+        all_data = []
+        name = session_data[0][0]
+        email = session_data[0][1]
+        for score in scores:
+            
+            percentages = [
+                {
+                    'color': 'Orange',
+                    'score': score[0],
+                    'percentage': round((score[0] / 50) * 100, 1)  # Calculate and round percentage
+                },
+                {
+                    'color': 'Blue',
+                    'score': score[1],
+                    'percentage': round((score[1] / 50) * 100, 1)
+                },
+                {
+                    'color': 'Gold',
+                    'score': score[2],
+                    'percentage': round((score[2] / 50) * 100, 1)
+                },
+                {
+                    'color': 'Green',
+                    'score': score[3],
+                    'percentage': round((score[3] / 50) * 100, 1)
+                }
+            ]
+            
+            # Append session data and percentages to the response list
+            all_data.append({
+                'name': name,
+                'email': email,
+                'scores': percentages
+            })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    
+    return jsonify(all_data)
+
+@app.route('/student_data/<email>')
+@login_is_required
+def student_data(email):
+    '''
+    Fetches and displays data for a specific student based on their email.
+    '''
+    try:
+        # Fetch all data from the /fetch_all_percentages endpoint
+        response = requests.get(url_for('fetch_all_percentages', _external=True))
+        scores = fetch_all_scores()
+        all_data = response.json()
+        # Filter data for the specific student
+        all_scores = []
+        for data in all_data:
+            if not data:
+                return render_template('student_data.html', data=[], student_email=email)
+            all_scores.append(data['scores'])
+            
+        return render_template('student_data.html', data=all_scores, student_email=email) #Index all_scores by a number to get that test number
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    
 def connectToMySQL():
     '''
     Connects to MySQL and returns a cursor and connection object.
