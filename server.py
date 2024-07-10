@@ -91,6 +91,9 @@ def callback():
    
     flow.fetch_token(authorization_response=request.url)
 
+    print(session['state'])
+    print(request.args['state'])
+    
     if not session['state'] == request.args['state']:
         print(session['state'])
         print(request.args['state'])
@@ -425,15 +428,9 @@ def fetch_all_percentages():
         connection.close()
 
         all_data = []
-        print("Scores in fetch_all_percentages:", scores)
-        print("Session Data in fetch_all_percentages:", session_data)
-
         name = session_data[0][0]
         email = session_data[0][1]
-        print("Name:", name)
-        print("Email:", email)
         for score in scores:
-            print("Score in fetch_percentages:", score)
             
             percentages = [
                 {
