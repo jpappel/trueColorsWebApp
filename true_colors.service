@@ -1,7 +1,7 @@
 [Unit]
 Description=Launch the Flask server
 After=network-online.target
-Wants=network-online.target/
+Wants=network-online.target
 
 [Service]
 ExecStart=/home/truecolors/trueColorsWebApp/.venv/bin/gunicorn --certfile /etc/letsencrypt/live/webapps.cs.moravian.edu/fullchain.pem --keyfile /etc/letsencrypt/live/webapps.cs.moravian.edu/privkey.pem --chdir /home/truecolors/trueColorsWebApp --workers 4 --bind 0.0.0.0:443 server:app

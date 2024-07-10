@@ -199,6 +199,22 @@ function getHighestScorePieChart(scores) {
     return highest_colors;
 }
 
+function getHighestScorePieChart(scores) {
+    const COLOR_NAMES = ["ORANGE", "BLUE", "GOLD", "GREEN"];
+
+    const highest_score = Math.max(...scores);
+
+    const highest_colors = [];
+    for (let i = 0; i < scores.length; i++) {
+        if (scores[i] === highest_score) {
+            // Assuming your color names are stored in a separate array
+            highest_colors.push(COLOR_NAMES[i]);
+        }
+    }
+
+    return highest_colors;
+}
+
 // Function to get the answers of the current group of words
 function getAnswers() {
 
@@ -553,6 +569,7 @@ function displayResults() {
     user_result.textContent = result_color;
     user_result.style = `color: ${result_color}`;
 
+    destroyDistributionChart();
     renderDistributionChart();
 
     sendResults();
@@ -644,4 +661,3 @@ function destroyDistributionChart() {
         color_distribution_chart.destroy();
     }
 };
-

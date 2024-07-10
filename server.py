@@ -11,6 +11,9 @@ from google.oauth2 import id_token
 import google.auth.transport.requests
 import pip._vendor.cachecontrol as cachecontrol
 from functools import wraps
+import time
+from flask_session import Session
+import redis
 
 load_dotenv()
 if not os.getenv('FLASK_SECRET_KEY'):
@@ -29,7 +32,7 @@ client_secrets_file = os.path.join(pathlib.Path(__file__).parent, 'client_secret
 flow = Flow.from_client_secrets_file(
     client_secrets_file=client_secrets_file,
     scopes=['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email', 'openid'],
-    redirect_uri='http://127.0.0.1:8000/callback')
+    redirect_uri= os.getenv('REDIRECT_URI'))
 
 def login_is_required(function):
     @wraps(function)
@@ -85,21 +88,26 @@ def faculty_login():
 
 @app.route('/callback')
 def callback():
+   
     flow.fetch_token(authorization_response=request.url)
 
     if not session['state'] == request.args['state']:
+        print(session['state'])
+        print(request.args['state'])
         return abort(500)  # State does not match!
-
+    
     credentials = flow.credentials
     request_session = flow.authorized_session()
     cached_session = cachecontrol.CacheControl(request_session)  # Use cachecontrol
     token_request = google.auth.transport.requests.Request(session=cached_session)
 
+
     id_info = id_token.verify_oauth2_token(
         id_token=credentials.id_token,
         request=token_request,
-        audience=GOOGLE_CLIENT_ID)
-
+        audience=GOOGLE_CLIENT_ID,
+        clock_skew_in_seconds=10) # Testing this to allow for some clock skew
+    
     session['google_id'] = id_info.get('sub')
     session['name'] = id_info.get('name')
     session['email'] = id_info.get('email')
@@ -172,19 +180,19 @@ def get_questions():
     select = ""
 
     if request.args.get('group') == "1":
-        select = "SELECT * FROM ordered_questions WHERE question_num = 1;"
+        select = "SELECT * FROM questions WHERE question_num = 1 ORDER BY group_num;"
             
     elif request.args.get('group') == "2":
-        select = "SELECT * FROM ordered_questions WHERE question_num = 2;"
+        select = "SELECT * FROM questions WHERE question_num = 2 ORDER BY group_num;"
         
     elif request.args.get('group') == "3":
-        select = "SELECT * FROM ordered_questions WHERE question_num = 3;"
+        select = "SELECT * FROM questions WHERE question_num = 3 ORDER BY group_num;"
             
     elif request.args.get('group') == "4":
-        select = "SELECT * FROM ordered_questions WHERE question_num = 4;"
+        select = "SELECT * FROM questions WHERE question_num = 4 ORDER BY group_num;"
             
     else:
-        select = "SELECT * FROM ordered_questions WHERE question_num = 5;"
+        select = "SELECT * FROM questions WHERE question_num = 5 ORDER BY group_num;"
             
     cursor.execute(use_db)
     cursor.execute(select)
@@ -213,6 +221,11 @@ def store_result():
     use_db = "USE TrueColors;"
     cursor.execute(use_db)
 
+    # Retrieve the highest test_id and increment it by 1
+    cursor.execute("SELECT MAX(test_id) FROM responses")
+    last_test_id = cursor.fetchone()[0]
+    new_test_id = 1 if last_test_id is None else last_test_id + 1
+
     for result in results:
         print(result)
         question_num = result['question_num']
@@ -223,8 +236,10 @@ def store_result():
         SELECT * FROM responses 
         WHERE user_id = %s AND test_id = %s AND question_num = %s AND group_num = %s;
         """
-        # UPDATE TEST ID TO NOT JUST BE 1 
-        cursor.execute(select_query, (id, 1, question_num, group_num)) # 1 is the test Id, update when we figure that out
+        
+        test_id = """SELECT test_id FROM response_flags WHERE user_id = %s;"""
+
+        cursor.execute(select_query, (id, new_test_id, question_num, group_num))
         existing_record = cursor.fetchone()
 
         if existing_record:
@@ -233,15 +248,13 @@ def store_result():
             SET score = %s 
             WHERE user_id = %s AND test_id = %s AND question_num = %s AND group_num = %s;
             """
-            # UPDATE TEST ID TO NOT JUST BE 1
-            cursor.execute(update_query, (score, id, 1, question_num, group_num)) # 1 is the test Id, update when we figure that out
+            cursor.execute(update_query, (score, id, new_test_id, question_num, group_num))
         else:
             insert_query = """
             INSERT INTO responses (user_id, test_id, question_num, group_num, score) 
             VALUES (%s, %s, %s, %s, %s);
             """
-            # UPDATE TEST ID TO NOT JUST BE 1
-            cursor.execute(insert_query, (id, 1, question_num, group_num, score)) # 1 is the test Id, update when we figure that out
+            cursor.execute(insert_query, (id, new_test_id, question_num, group_num, score))
 
     connection.commit()
     cursor.close()
@@ -271,14 +284,19 @@ def save_location():
     """
 
     cursor.execute(use_db)
-    cursor.execute(insert_location, (id, 1, location)) # Have to update test_id from 1 to autoincrement
+
+    # Retrieve the highest test_id and increment it by 1
+    cursor.execute("SELECT MAX(test_id) FROM quiz")
+    last_test_id = cursor.fetchone()[0]
+    new_test_id = 1 if last_test_id is None else last_test_id + 1
+
+    cursor.execute(insert_location, (id, new_test_id, location))
 
     connection.commit()
     cursor.close()
     connection.close()
 
     return "Location saved successfully.", 200 
-
 
 def fetch_all_scores():
     '''
@@ -390,6 +408,7 @@ def fetch_session_data():
     rows = cursor.fetchall()
     connection.close()
     return jsonify(rows)
+
 
 @app.route('/fetch_all_percentages')
 def fetch_all_percentages():

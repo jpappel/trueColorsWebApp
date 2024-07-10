@@ -28,11 +28,6 @@ CREATE TABLE IF NOT EXISTS responses (
 CREATE TABLE IF NOT EXISTS quiz (
     user_id VARCHAR(255),
     test_id INT(5),
-    description VARCHAR(255)
+    description VARCHAR(255),
+    time_stamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-
--- Create command "SELECT * FROM ordered_questions;" to view each question in order of appearance
-CREATE VIEW ordered_questions AS
-SELECT *
-FROM questions
-ORDER BY question_num, group_num, word_num;
