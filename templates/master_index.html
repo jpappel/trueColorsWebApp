@@ -9,45 +9,15 @@
 <body>
 
 <div class="master_page fade-in" id="faculty_panel">
-    <h2 class="master_title">Welcome to the True Colors Faculty Page!</h2>
+    <h2 class="master_title">True Colors Faculty Page</h2>
     <a href="{{ url_for('logout') }}"><button type="button" class="special_button" id="verify_button">Logout</button></a>
 
-    <h3 class="data_title">Student Roster</h3>
+    <h3 class="data_title">Student Roster</h3> 
+    <div id="student_count"></div>
     <div id="data_display"></div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        fetch('/fetch_session_data')
-            .then(response => response.json())
-            .then(data => {
-                console.log("Fetched data:", data); 
-                let dataDisplay = document.getElementById('data_display');
-                dataDisplay.innerHTML = '';
-
-                let table = document.createElement('table');
-                table.classList.add('data_table');  // Add a class for styling
-
-                table.innerHTML = `
-                    <tr>
-                        <th>Name</th>
-                    </tr>
-                `;
-                data.forEach(user => {
-                    let row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><a href="/student_data/${user[1]}">${user[0]}</a></td>
-                    `;
-                    table.appendChild(row);
-                });
-                dataDisplay.appendChild(table);
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-                document.getElementById('data_display').innerHTML = `<p>Error: ${error}</p>`;
-            });
-    });
-</script>
+<script src="static/master_app.js"></script>
 
 </body>
 </html>

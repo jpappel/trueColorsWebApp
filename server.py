@@ -1,18 +1,21 @@
-from flask import Flask, abort, jsonify, redirect, request, session, render_template
+from flask import Flask, abort, jsonify, redirect, request, session, render_template, url_for
 from dotenv import load_dotenv
-import dotenv
 import os
 import uuid
 import mysql.connector
 import pathlib
+import requests
 from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
 from google.oauth2 import id_token
 import google.auth.transport.requests
-import pip._vendor.cachecontrol as cachecontrol  # Import cachecontrol
+import pip._vendor.cachecontrol as cachecontrol
+from functools import wraps
 import time
+from flask_session import Session
+import redis
 
-dotenv.load_dotenv()
+load_dotenv()
 if not os.getenv('FLASK_SECRET_KEY'):
     print('Please set FLASK_SECRET_KEY in .env file.')
     exit(1)
@@ -21,9 +24,6 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Only for testing purposes
-
-# Load environment variables from .env file
-load_dotenv()
 
 # Google OAuth configuration
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
@@ -35,12 +35,12 @@ flow = Flow.from_client_secrets_file(
     redirect_uri= os.getenv('REDIRECT_URI'))
 
 def login_is_required(function):
+    @wraps(function)
     def wrapper(*args, **kwargs):
         if 'google_id' not in session:  # Check if the user is logged in
             return abort(401)  # If not, return 401 Unauthorized
         else:
             return function(*args, **kwargs)
-        
     return wrapper
 
 @app.route('/quiz')
@@ -48,22 +48,49 @@ def login_is_required(function):
 def quiz():
     user_name = session.get('name')
     return render_template("quiz.html", user_name=user_name)
+
+@app.route('/master_index')
+@login_is_required
+def master_index():
+    user_name = session.get('name')
+    return render_template("master_index.html", user_name=user_name)
     
 # Redirect user to Google content screen
 @app.route('/login')
 def login():
     authorization_url, state = flow.authorization_url()
-    session['state'] = state
+    session['state'] = state 
+    session.pop('is_faculty', None)  # Remove the faculty flag if it exists
     return redirect(authorization_url)
 
-# Receive data from Google endpoint
+# Redirect faculty to Google content screen
+@app.route('/faculty_redirect')
+def faculty_redirect():
+    # List of allowed faculty emails
+    allowed_faculty_emails = [
+        "colemanb@moravian.edu",
+        "drabicj@moravian.edu",
+        "romerom@moravian.edu",
+        "garciar03@moravian.edu"
+    ]
+
+    # If the user's email is not in the allowed list, abort with a 403 Forbidden error
+    if session.get('email') not in allowed_faculty_emails:
+        return abort(403)
+    return redirect('/master_index')
+
+@app.route('/faculty_login')
+def faculty_login():
+    authorization_url, state = flow.authorization_url()
+    session['state'] = state
+    session['is_faculty'] = True  # Set a flag to identify faculty users
+    return redirect(authorization_url)
+
 @app.route('/callback')
 def callback():
+   
     flow.fetch_token(authorization_response=request.url)
 
-    print(session['state'])
-    print(request.args['state'])
-    
     if not session['state'] == request.args['state']:
         print(session['state'])
         print(request.args['state'])
@@ -74,25 +101,25 @@ def callback():
     cached_session = cachecontrol.CacheControl(request_session)  # Use cachecontrol
     token_request = google.auth.transport.requests.Request(session=cached_session)
 
-    time.sleep(1)  # Sleep for 1 second
 
     id_info = id_token.verify_oauth2_token(
         id_token=credentials.id_token,
         request=token_request,
-        audience=GOOGLE_CLIENT_ID)
+        audience=GOOGLE_CLIENT_ID,
+        clock_skew_in_seconds=10) # Testing this to allow for some clock skew
     
     session['google_id'] = id_info.get('sub')
     session['name'] = id_info.get('name')
     session['email'] = id_info.get('email')
-    
+
     cursor, cnx = connectToMySQL()
-    
+
     try:
         # Check if user already exists in the session table
         query_check = "SELECT * FROM session WHERE email = %s"
         cursor.execute(query_check, (session['email'],))
-        existing_user = cursor.fetchone() # Fetch the first row 
-        
+        existing_user = cursor.fetchone()  # Fetch the first row
+
         if existing_user:
             # Updates the existing user if necessary
             query_update = "UPDATE session SET name = %s WHERE email = %s"
@@ -103,17 +130,21 @@ def callback():
             query_insert = "INSERT INTO session (user_id, name, email) VALUES (%s, %s, %s)"
             cursor.execute(query_insert, (session['google_id'], session['name'], session['email']))
             cnx.commit()
-        
+
     except mysql.connector.Error as err:
         print(f"Error during login: {err}")
         cnx.rollback()  # Rollback the transaction in case of error
         return abort(500)
-    
+
     finally:
         cursor.close()
         cnx.close()
-        
-    return redirect('/quiz')
+
+    # Redirect based on the user type
+    if session.get('is_faculty'):
+        return redirect('/faculty_redirect')
+    else:
+        return redirect('/quiz')
 
 # Clear login session from the user
 @app.route('/logout') 
@@ -276,7 +307,7 @@ def fetch_all_scores():
     cursor.execute(use_db)
     cursor.execute("""
         SELECT user_id, test_id, question_num, group_num, score
-        FROM responses
+        FROM responses 
         ORDER BY user_id, test_id, question_num, group_num
     """)
 
@@ -363,6 +394,7 @@ def fetch_data():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+    
 
 @app.route('/fetch_session_data')
 def fetch_session_data():
@@ -380,9 +412,6 @@ def fetch_session_data():
 
 @app.route('/fetch_all_percentages')
 def fetch_all_percentages():
-    '''
-    Fetches all scores and calculates the color percentages for each user.
-    '''
     try:
         scores = fetch_all_scores()
         cursor, connection = connectToMySQL()
@@ -390,13 +419,27 @@ def fetch_all_percentages():
         cursor.execute(use_db)
         cursor.execute("SELECT name, email FROM session;")
         session_data = cursor.fetchall()
+
+        # Fetch timestamps for each test attempt
+        cursor.execute("SELECT user_id, test_id, time_stamp FROM quiz ORDER BY user_id, test_id;")
+        quiz_data = cursor.fetchall()
+        
         connection.close()
 
         all_data = []
+        print("Scores in fetch_all_percentages:", scores)
+        print("Session Data in fetch_all_percentages:", session_data)
+        print("Quiz Data in fetch_all_percentages:", quiz_data)
+
+        if not session_data:
+            return jsonify({"error": "No session data found"}), 500
+        
         name = session_data[0][0]
         email = session_data[0][1]
-        for score in scores:
-            
+        print("Name:", name)
+        print("Email:", email)
+
+        for idx, score in enumerate(scores):
             percentages = [
                 {
                     'color': 'Orange',
@@ -419,13 +462,19 @@ def fetch_all_percentages():
                     'percentage': round((score[3] / 50) * 100, 1)
                 }
             ]
-            
+
+            # Find the corresponding timestamp for the test attempt
+            timestamp = quiz_data[idx][2].strftime('%m-%d-%Y %H:%M:%S')
+
             # Append session data and percentages to the response list
             all_data.append({
                 'name': name,
                 'email': email,
-                'scores': percentages
+                'scores': percentages,
+                'timestamp': timestamp  # Include formatted timestamp
             })
+            print(f"Attempt {idx + 1}: {all_data[-1]}")  # Print each attempt for debugging
+            print("timestamp:", all_data[-1]['timestamp'])
 
     except Exception as e:
         import traceback
@@ -433,6 +482,7 @@ def fetch_all_percentages():
         return jsonify({"error": str(e)}), 500
     
     return jsonify(all_data)
+
 
 @app.route('/student_data/<email>')
 @login_is_required
@@ -443,8 +493,8 @@ def student_data(email):
     try:
         # Fetch all data from the /fetch_all_percentages endpoint
         response = requests.get(url_for('fetch_all_percentages', _external=True))
-        scores = fetch_all_scores()
         all_data = response.json()
+        
         # Filter data for the specific student
         all_scores = []
         for data in all_data:
@@ -452,7 +502,8 @@ def student_data(email):
                 return render_template('student_data.html', data=[], student_email=email)
             all_scores.append(data['scores'])
             
-        return render_template('student_data.html', data=all_scores, student_email=email) #Index all_scores by a number to get that test number
+        all_scores.reverse()  # Reverse the list to display the most recent test first
+        return render_template('student_data.html', data=all_scores, all_data=all_data, student_email=email) #Index all_scores by a number to get that test number
 
     except Exception as e:
         import traceback
