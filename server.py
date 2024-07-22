@@ -198,7 +198,6 @@ def get_questions():
     cursor.execute(select)
         
     questions = cursor.fetchall()
-    print(jsonify(questions))
     
     cursor.close()
     connection.close()
@@ -213,7 +212,6 @@ def store_result():
     id = getId()
     data = request.get_json()
     results = data['results']
-    print(results)
 
     cursor, connection = connectToMySQL()
 
@@ -227,7 +225,6 @@ def store_result():
     new_test_id = 1 if last_test_id is None else last_test_id + 1
 
     for result in results:
-        print(result)
         question_num = result['question_num']
         group_num = result['group_num']
         score = result['score']
@@ -377,7 +374,6 @@ def fetch_all_scores():
 
     # Convert the dictionary to a list of lists containing only the scores
     result = [[value['score_orange'], value['score_blue'], value['score_gold'], value['score_green']] for value in user_test_scores.values()]
-    print("Color Results", result)
     return result
 
 
@@ -388,7 +384,6 @@ def fetch_data():
     '''
     try:
         scores = fetch_all_scores()
-        print("Scores", scores)
         return jsonify(scores)
     except Exception as e:
         import traceback
@@ -427,17 +422,11 @@ def fetch_all_percentages():
         connection.close()
 
         all_data = []
-        print("Scores in fetch_all_percentages:", scores)
-        print("Session Data in fetch_all_percentages:", session_data)
-        print("Quiz Data in fetch_all_percentages:", quiz_data)
-
         if not session_data:
             return jsonify({"error": "No session data found"}), 500
         
         name = session_data[0][0]
         email = session_data[0][1]
-        print("Name:", name)
-        print("Email:", email)
 
         for idx, score in enumerate(scores):
             percentages = [
@@ -473,8 +462,6 @@ def fetch_all_percentages():
                 'scores': percentages,
                 'timestamp': timestamp  # Include formatted timestamp
             })
-            print(f"Attempt {idx + 1}: {all_data[-1]}")  # Print each attempt for debugging
-            print("timestamp:", all_data[-1]['timestamp'])
 
     except Exception as e:
         import traceback

@@ -5,19 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='master_style.css') }}">
     <title>True Colors Assessment Data</title>
+    <style>
+        /* Inline CSS to define the scrollable container */
+        .scrollable-container {
+            max-height: 400px; /* Adjust height as needed */
+            overflow-y: scroll;
+            border: 1px solid #ddd; /* Optional border for visibility */
+            padding: 10px; /* Optional padding for aesthetics */
+        }
+    </style>
+
 </head>
 <body>
+    <div class="master_page fade-in" id="faculty_panel">
+        <h2 class="master_title">True Colors Faculty Page</h2>
+        <hr></hr>
 
-<div class="master_page fade-in" id="faculty_panel">
-    <h2 class="master_title">True Colors Faculty Page</h2>
-    <a href="{{ url_for('logout') }}"><button type="button" class="special_button" id="verify_button">Logout</button></a>
+        <h3 class="data_title">Student Roster</h3> 
+        <div id="student_count"></div>
+        
+        <!-- Wrap student roster in a scrollable container -->
+        <div class="scrollable-container">
+            <div id="data_display"></div>
+        </div>
+        <a href="{{ url_for('logout') }}"><button type="button" class="special_button" id="verify_button">Logout</button></a>
+    </div>
 
-    <h3 class="data_title">Student Roster</h3> 
-    <div id="student_count"></div>
-    <div id="data_display"></div>
-</div>
+   
 
-<script src="static/master_app.js"></script>
-
+    <script src="static/master_app.js"></script>
 </body>
 </html>
