@@ -1,5 +1,5 @@
 from flask import Flask, abort, jsonify, redirect, request, session, render_template, url_for
-from dotenv import load_dotenv
+import dotenv
 import os
 import uuid
 import mysql.connector
@@ -14,8 +14,10 @@ from functools import wraps
 import time
 from flask_session import Session
 import redis
+from authlib.integrations.flask_client import OAuth
 
-load_dotenv()
+
+dotenv.load_dotenv()
 if not os.getenv('FLASK_SECRET_KEY'):
     print('Please set FLASK_SECRET_KEY in .env file.')
     exit(1)
@@ -23,21 +25,37 @@ if not os.getenv('FLASK_SECRET_KEY'):
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
+# OAUTH CONFIG
+oauth = OAuth(app)
+oauth.register(
+    name='google',
+    client_id=os.getenv('GOOGLE_CLIENT_ID'),
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    access_token_params=None,
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    authorize_params=None,
+    api_base_url='https://www.googleapis.com/oauth2/v1/',
+    client_kwargs={'scope': 'openid profile email'},
+    jwks_uri = "https://www.googleapis.com/oauth2/v3/certs",
+    clock_skew_in_seconds=10
+)
+
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Only for testing purposes
 
 # Google OAuth configuration
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 client_secrets_file = os.path.join(pathlib.Path(__file__).parent, 'client_secrets.json')
 
-flow = Flow.from_client_secrets_file(
-    client_secrets_file=client_secrets_file,
-    scopes=['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email', 'openid'],
-    redirect_uri= os.getenv('REDIRECT_URI'))
+#flow = Flow.from_client_secrets_file(
+    #client_secrets_file=client_secrets_file,
+    #scopes=['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email', 'openid'],
+    #redirect_uri= os.getenv('REDIRECT_URI'))
 
 def login_is_required(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
-        if 'google_id' not in session:  # Check if the user is logged in
+        if 'email' not in session:  # Check if the user is logged in
             return abort(401)  # If not, return 401 Unauthorized
         else:
             return function(*args, **kwargs)
@@ -58,10 +76,16 @@ def master_index():
 # Redirect user to Google content screen
 @app.route('/login')
 def login():
-    authorization_url, state = flow.authorization_url()
-    session['state'] = state
-    session.pop('is_faculty', None)  # Remove the faculty flag if it exists
-    return redirect(authorization_url)
+    google = oauth.create_client('google') # Create/get the google client above
+    redirect_uri = url_for('authorize', _external=True)
+    session.pop('is_faculty', None)
+    return oauth.google.authorize_redirect(redirect_uri)
+    #authorization_url, state = flow.authorization_url()
+    #print("STATE IN LOGIN:", state)
+    #session['state'] = state 
+    #print("STATE IN LOGIN AFTER SETTING IT:" , session['state'])
+    #session.pop('is_faculty', None)  # Remove the faculty flag if it exists
+    #return redirect(authorization_url)
 
 # Redirect faculty to Google content screen
 @app.route('/faculty_redirect')
@@ -81,36 +105,55 @@ def faculty_redirect():
 
 @app.route('/faculty_login')
 def faculty_login():
-    authorization_url, state = flow.authorization_url()
-    session['state'] = state
+    google = oauth.create_client('google') # Create/get the google client above
+    redirect_uri = url_for('authorize', _external=True)
     session['is_faculty'] = True  # Set a flag to identify faculty users
-    return redirect(authorization_url)
+    return oauth.google.authorize_redirect(redirect_uri)
+    #authorization_url, state = flow.authorization_url()
+    #session['state'] = state
+    #eturn redirect(authorization_url)
 
-@app.route('/callback')
-def callback():
+@app.route('/authorize')
+def authorize():
    
-    flow.fetch_token(authorization_response=request.url)
+    google = oauth.create_client('google') # Create/get the google client above
+    token = oauth.google.authorize_access_token()
+    resp = oauth.google.get('userinfo')
+    user_info = resp.json()
+    print("USER INFO:", user_info)
+    # Do something with the token and profile
+    session['email'] = user_info['email']
+    session['name'] = user_info['name']
 
-    if not session['state'] == request.args['state']:
-        print(session['state'])
-        print(request.args['state'])
-        return abort(500)  # State does not match!
+    #flow.fetch_token(authorization_response=request.url)
+
+    #print("ENTERING FOR LOOP")
+    #if len(list(session.keys())) == 0:
+        #print("SESSION IS EMPTY")
+    #for key in list(session.keys()):
+        #print("KEY:", key)
+    #print("REQEST STATE?", request.args['state'])
+
+    #if not session['state'] == request.args['state']:
+        #print(session['state'])
+        #print(request.args['state'])
+        #return abort(500)  # State does not match!
     
-    credentials = flow.credentials
-    request_session = flow.authorized_session()
-    cached_session = cachecontrol.CacheControl(request_session)  # Use cachecontrol
-    token_request = google.auth.transport.requests.Request(session=cached_session)
+    #credentials = flow.credentials
+    #request_session = flow.authorized_session()
+    #cached_session = cachecontrol.CacheControl(request_session)  # Use cachecontrol
+    #token_request = google.auth.transport.requests.Request(session=cached_session)
 
 
-    id_info = id_token.verify_oauth2_token(
-        id_token=credentials.id_token,
-        request=token_request,
-        audience=GOOGLE_CLIENT_ID,
-        clock_skew_in_seconds=10) # Testing this to allow for some clock skew
+    #id_info = id_token.verify_oauth2_token(
+        #id_token=credentials.id_token,
+        #request=token_request,
+        #audience=GOOGLE_CLIENT_ID,
+        #clock_skew_in_seconds=10) # Testing this to allow for some clock skew
     
-    session['google_id'] = id_info.get('sub')
-    session['name'] = id_info.get('name')
-    session['email'] = id_info.get('email')
+    #session['google_id'] = id_info.get('sub')
+    #session['name'] = id_info.get('name')
+    #session['email'] = id_info.get('email')
 
     cursor, cnx = connectToMySQL()
 
@@ -149,7 +192,9 @@ def callback():
 # Clear login session from the user
 @app.route('/logout') 
 def logout():
-    session.clear()
+    #session.clear()
+    for key in list(session.keys()):
+        session.pop(key)
     return redirect('/')
 
 # Route to get session data
