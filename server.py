@@ -87,6 +87,7 @@ def login():
     #session.pop('is_faculty', None)  # Remove the faculty flag if it exists
     #return redirect(authorization_url)
 
+
 # Redirect faculty to Google content screen
 @app.route('/faculty_redirect')
 def faculty_redirect():
@@ -95,7 +96,7 @@ def faculty_redirect():
         "colemanb@moravian.edu",
         "drabicj@moravian.edu",
         "romerom@moravian.edu",
-        "garciar@moravian.edu"
+        "garciar03@moravian.edu"
     ]
 
     # If the user's email is not in the allowed list, abort with a 403 Forbidden error
@@ -243,7 +244,6 @@ def get_questions():
     cursor.execute(select)
         
     questions = cursor.fetchall()
-    print(jsonify(questions))
     
     cursor.close()
     connection.close()
@@ -258,7 +258,6 @@ def store_result():
     id = getId()
     data = request.get_json()
     results = data['results']
-    print(results)
 
     cursor, connection = connectToMySQL()
 
@@ -272,7 +271,6 @@ def store_result():
     new_test_id = 1 if last_test_id is None else last_test_id + 1
 
     for result in results:
-        print(result)
         question_num = result['question_num']
         group_num = result['group_num']
         score = result['score']
@@ -352,7 +350,7 @@ def fetch_all_scores():
     cursor.execute(use_db)
     cursor.execute("""
         SELECT user_id, test_id, question_num, group_num, score
-        FROM responses  -- Change this to your actual table name
+        FROM responses 
         ORDER BY user_id, test_id, question_num, group_num
     """)
 
@@ -422,7 +420,6 @@ def fetch_all_scores():
 
     # Convert the dictionary to a list of lists containing only the scores
     result = [[value['score_orange'], value['score_blue'], value['score_gold'], value['score_green']] for value in user_test_scores.values()]
-    print("Color Results", result)
     return result
 
 
@@ -433,7 +430,6 @@ def fetch_data():
     '''
     try:
         scores = fetch_all_scores()
-        print("Scores", scores)
         return jsonify(scores)
     except Exception as e:
         import traceback
@@ -457,9 +453,6 @@ def fetch_session_data():
 
 @app.route('/fetch_all_percentages')
 def fetch_all_percentages():
-    '''
-    Fetches all scores and calculates the color percentages for each user.
-    '''
     try:
         scores = fetch_all_scores()
         cursor, connection = connectToMySQL()
@@ -467,19 +460,21 @@ def fetch_all_percentages():
         cursor.execute(use_db)
         cursor.execute("SELECT name, email FROM session;")
         session_data = cursor.fetchall()
+
+        # Fetch timestamps for each test attempt
+        cursor.execute("SELECT user_id, test_id, time_stamp FROM quiz ORDER BY user_id, test_id;")
+        quiz_data = cursor.fetchall()
+        
         connection.close()
 
         all_data = []
-        print("Scores in fetch_all_percentages:", scores)
-        print("Session Data in fetch_all_percentages:", session_data)
-
+        if not session_data:
+            return jsonify({"error": "No session data found"}), 500
+        
         name = session_data[0][0]
         email = session_data[0][1]
-        print("Name:", name)
-        print("Email:", email)
-        for score in scores:
-            print("Score in fetch_percentages:", score)
-            
+
+        for idx, score in enumerate(scores):
             percentages = [
                 {
                     'color': 'Orange',
@@ -502,12 +497,16 @@ def fetch_all_percentages():
                     'percentage': round((score[3] / 50) * 100, 1)
                 }
             ]
-            
+
+            # Find the corresponding timestamp for the test attempt
+            timestamp = quiz_data[idx][2].strftime('%m-%d-%Y %H:%M:%S')
+
             # Append session data and percentages to the response list
             all_data.append({
                 'name': name,
                 'email': email,
-                'scores': percentages
+                'scores': percentages,
+                'timestamp': timestamp  # Include formatted timestamp
             })
 
     except Exception as e:
@@ -516,6 +515,7 @@ def fetch_all_percentages():
         return jsonify({"error": str(e)}), 500
     
     return jsonify(all_data)
+
 
 @app.route('/student_data/<email>')
 @login_is_required
@@ -526,8 +526,8 @@ def student_data(email):
     try:
         # Fetch all data from the /fetch_all_percentages endpoint
         response = requests.get(url_for('fetch_all_percentages', _external=True))
-        scores = fetch_all_scores()
         all_data = response.json()
+        
         # Filter data for the specific student
         all_scores = []
         for data in all_data:
@@ -535,7 +535,8 @@ def student_data(email):
                 return render_template('student_data.html', data=[], student_email=email)
             all_scores.append(data['scores'])
             
-        return render_template('student_data.html', data=all_scores, student_email=email) #Index all_scores by a number to get that test number
+        all_scores.reverse()  # Reverse the list to display the most recent test first
+        return render_template('student_data.html', data=all_scores, all_data=all_data, student_email=email) #Index all_scores by a number to get that test number
 
     except Exception as e:
         import traceback
