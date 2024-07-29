@@ -19,12 +19,12 @@
 <body>
 
 <div class="container mt-5">
-    <h2 class="student_data_title">Data for <strong>{{ student_email }}</strong></h2>
+    <h2 class="student_data_title">Data for <strong>{{ student_name }}: {{ student_email }}</strong></h2>
     <a href="{{ url_for('master_index') }}"><button type="button" class="btn btn-primary">Back</button></a>
 
     <div id="accordion" class="mt-3 scrollable-container">
         {% if data %}
-            {% for attempt in data|reverse %}
+            {% for attempt in data %}
 
                 <div class="card">
                     <div class="card-header" id="heading{{ loop.index }}">

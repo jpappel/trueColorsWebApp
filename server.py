@@ -462,8 +462,9 @@ def fetch_all_percentages():
         session_data = cursor.fetchall()
 
         # Fetch timestamps for each test attempt
-        cursor.execute("SELECT user_id, test_id, time_stamp FROM quiz ORDER BY user_id, test_id;")
+        cursor.execute("SELECT user_id, test_id, time_stamp FROM quiz ORDER BY test_id, user_id;")
         quiz_data = cursor.fetchall()
+        quiz_data.reverse()  # Reverse the list to display the most recent test first
         
         connection.close()
 
@@ -517,9 +518,9 @@ def fetch_all_percentages():
     return jsonify(all_data)
 
 
-@app.route('/student_data/<email>')
+@app.route('/student_data/<email>/<name>')
 @login_is_required
-def student_data(email):
+def student_data(email, name):
     '''
     Fetches and displays data for a specific student based on their email.
     '''
@@ -527,16 +528,17 @@ def student_data(email):
         # Fetch all data from the /fetch_all_percentages endpoint
         response = requests.get(url_for('fetch_all_percentages', _external=True))
         all_data = response.json()
+        print("ALL DATA:", all_data)
         
         # Filter data for the specific student
         all_scores = []
         for data in all_data:
             if not data:
-                return render_template('student_data.html', data=[], student_email=email)
+                return render_template('student_data.html', data=[], student_email=email, student_name=name)
             all_scores.append(data['scores'])
             
         all_scores.reverse()  # Reverse the list to display the most recent test first
-        return render_template('student_data.html', data=all_scores, all_data=all_data, student_email=email) #Index all_scores by a number to get that test number
+        return render_template('student_data.html', data=all_scores, all_data=all_data, student_email=email, student_name=name) #Index all_scores by a number to get that test number
 
     except Exception as e:
         import traceback

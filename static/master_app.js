@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data.forEach(user => {
                 let row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><a href="/student_data/${user[1]}">${user[0]}</a></td>
+                    <td><a href="/student_data/${user[1]}/${user[0]}">${user[0]}</a></td>
                 `;
                 table.appendChild(row);
             });
