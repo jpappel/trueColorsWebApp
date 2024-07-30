@@ -125,6 +125,7 @@ def authorize():
     # Do something with the token and profile
     session['email'] = user_info['email']
     session['name'] = user_info['name']
+    session['google_id'] = user_info['id']
 
     #flow.fetch_token(authorization_response=request.url)
 
