@@ -208,13 +208,13 @@ def session_data():
 def index():
     return render_template("index.html")
     
-def getId():
-    if 'uuid' not in session:
-        id = str(uuid.uuid4())
-        session['uuid'] = id
-    else:
-        id = session['uuid']
-    return id
+#def getId():
+    #if 'uuid' not in session:
+        #id = str(uuid.uuid4())
+        #session['uuid'] = id
+    #else:
+        #id = session['uuid']
+    #return id
     
 @app.route('/getQuestions')
 def get_questions():
@@ -256,7 +256,7 @@ def store_result():
     '''
     Stores the user's color result in the database.
     '''
-    id = getId()
+    id = session['email']
     data = request.get_json()
     results = data['results']
 
@@ -315,7 +315,7 @@ def save_location():
     if not location:
         return "No location provided.", 400
 
-    id = getId()
+    id = session['email']
     
     cursor, connection = connectToMySQL()
     
@@ -342,7 +342,7 @@ def save_location():
 
     return "Location saved successfully.", 200 
 
-def fetch_all_scores():
+def fetch_all_scores(email):
     '''
     Fetches all scores from the database and calculates the color scores for each user.
     '''
@@ -351,9 +351,10 @@ def fetch_all_scores():
     cursor.execute(use_db)
     cursor.execute("""
         SELECT user_id, test_id, question_num, group_num, score
-        FROM responses 
+        FROM responses
+        WHERE user_id = %s 
         ORDER BY user_id, test_id, question_num, group_num
-    """)
+    """, (email,))
 
     rows = cursor.fetchall()
     connection.close()
@@ -454,8 +455,9 @@ def fetch_session_data():
 
 @app.route('/fetch_all_percentages')
 def fetch_all_percentages():
+    email = request.args.get('email')
     try:
-        scores = fetch_all_scores()
+        scores = fetch_all_scores(email)
         cursor, connection = connectToMySQL()
         use_db = "USE TrueColors;"
         cursor.execute(use_db)
@@ -473,8 +475,8 @@ def fetch_all_percentages():
         if not session_data:
             return jsonify({"error": "No session data found"}), 500
         
-        name = session_data[0][0]
-        email = session_data[0][1]
+        #name = session_data[0][0]
+        #email = session_data[0][1]
 
         for idx, score in enumerate(scores):
             percentages = [
@@ -505,8 +507,6 @@ def fetch_all_percentages():
 
             # Append session data and percentages to the response list
             all_data.append({
-                'name': name,
-                'email': email,
                 'scores': percentages,
                 'timestamp': timestamp  # Include formatted timestamp
             })
@@ -527,10 +527,9 @@ def student_data(email, name):
     '''
     try:
         # Fetch all data from the /fetch_all_percentages endpoint
-        response = requests.get(url_for('fetch_all_percentages', _external=True))
+        response = requests.get(url_for('fetch_all_percentages', email=email, _external=True))
         all_data = response.json()
-        print("ALL DATA:", all_data)
-        
+
         # Filter data for the specific student
         all_scores = []
         for data in all_data:
