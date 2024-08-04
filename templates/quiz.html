@@ -28,11 +28,11 @@
     
         <!-- Dropdown for """""" location """"""" -->
         <br>
-        <label for="quiz_location" id="quiz_location_label">When taking this quiz, I am thinking of how I view myself at:</label>
+        <p for="quiz_location" id="quiz_location_label">When taking this quiz, I am thinking of how I view myself at:</p>
         <select id="quiz_location" name="quiz_location">
-            <option value="Choose_Location">Select Your Viewpoint</option>
+            <option value="Choose_Location">Select an Option</option>
             <option value="Home">Home</option>
-            <option value="College">College</option>
+            <option value="College">School</option>
             <option value="Work">Work</option>
             <option value="Other">Other</option>
         </select>
@@ -152,13 +152,20 @@
         <!-- Color description goes here -->
         <p id="user_description">MY_DESCRIPTION_HERE</p>
         <button class="special_button" id="back_button_info">Back to result page</button>
+        <button type="button" class="special_button" id="read_about_colors">Read about the other colors!</button>
     </div>
 
     <div class="full_results fade-in" id="full_results_panel">
         <h2 id="full_results_title">Full Results</h2>
         <p id="full_results_text">MY_FULL_RESULTS_HERE</p>
         <button class="special_button" id="back_button_full">Back to result page</button>
+        
     </div>
+
+    <div class="other_colors fade-in" id="other_colors_panel">
+        <h2 id="other_colors_title">Other Colors</h2>
+        <p id="other_colors_text">OTHER_COLORS_HERE</p>
+        <button class="special_button" id="back_button_other">Back to result page</button>
 
     <script src="/static/app.js"></script>
     <script>

@@ -9,6 +9,7 @@ const full_results_panel = document.getElementById('full_results_panel');
 const location_button = document.getElementById('quiz_location');
 const location_button_label = document.getElementById('quiz_location_label');
 const welcome_panel = document.getElementById('welcome_panel');
+const other_colors_panel = document.getElementById('other_colors_panel');
 let myChart;
 let color_distribution_chart;
 
@@ -18,6 +19,8 @@ results_panel.style.display = 'none';
 info_panel.style.display = 'none';
 pie_chart.style.display = 'none';
 full_results_panel.style.display = 'none';
+other_colors_panel.style.display = 'none';
+
 
 // Get all templates for each letter and their associated words
 const letter_1 = document.getElementById('letter_1');
@@ -420,18 +423,13 @@ full_results_button.addEventListener('click', () => {
     full_results_text = document.getElementById("full_results_text")
     scores = getScores();
     // list how the different scores for me
-    full_results_text.innerHTML = `<strong>Your scores for each color are as follows:</strong><br><br>
-    Orange: ${scores[0]}<br>
-    Blue: ${scores[1]}<br>
-    Gold: ${scores[2]}<br>
-    Green: ${scores[3]}<br><br>
-    <strong>This means that you are:</strong><br><br>
-    ${((scores[0] / 50) * 100).toFixed(0)}% Orange<br>
-    ${((scores[1] / 50) * 100).toFixed(0)}% Blue<br>
-    ${((scores[2] / 50) * 100).toFixed(0)}% Gold<br>
-    ${((scores[3] / 50) * 100).toFixed(0)}% Green<br>
+    full_results_text.innerHTML = `<strong>Your scores and percentages for each color are as follows:</strong><br><br>
+    Orange: ${scores[0]}, ${((scores[0] / 50) * 100).toFixed(0)}%<br>
+    Blue: ${scores[1]}, ${((scores[1] / 50) * 100).toFixed(0)}%<br>
+    Gold: ${scores[2]}, ${((scores[2] / 50) * 100).toFixed(0)}%<br>
+    Green: ${scores[3]},  ${((scores[3] / 50) * 100).toFixed(0)}% <br>
+
     `
-    // toFixed(0) gets rid of decimals. There are 50 points in total
 })
 
 back_button_full.addEventListener('click', () => {
@@ -439,6 +437,27 @@ back_button_full.addEventListener('click', () => {
     full_results_panel.style.display = 'none';
     results_panel.style.display = 'block';
         
+})
+
+// Function to display the other colors panel
+read_about_colors.addEventListener('click', () => {
+
+    info_panel.style.display = 'none';
+    other_colors_panel.style.display = 'block';
+
+    const other_colors_text = document.getElementById('other_colors_text');
+    other_colors_text.innerHTML = `Since you got ${getHighestScore()[0]}. Here is a brief description of the other colors: ${getOtherColorsDescription(getHighestScore()[0])}`;
+
+
+
+})
+
+// Function to hide the other colors panel and display the results panel
+back_button_other.addEventListener('click', () => {
+
+    other_colors_panel.style.display = 'none';
+    results_panel.style.display = 'block';
+
 })
 
 // Function that tells the user about their color
@@ -459,6 +478,27 @@ function getColorDescription(color) {
         return '<strong>Your Dominant Color is <strong id="green_color">GREEN</strong>!</strong><br><br>Others often describe you as extremely intelligent. You have an innate desire to do things to the best of your ability and take pride in your work. At work, you set the standard for everyone else. To you, work is truly enjoyable. Even on the weekends, you can\'t stand the thought of wasting a day by doing nothing, and always try to fit as much into each day as possible.<br><br>You are also a big thinker. You enjoy talking with others about abstract, philosophical ideas. You enjoy thinking about the future and all of its possibilities. You believe that you should never stop learning, and enjoy learning new information simply for your own enjoyment. In the workplace, you are a creative "idea person" who comes up with creative and practical solutions to problems.<br><br>You are very independent. Although you enjoy spending time with others, you need your private time each day to recharge. This gives you time to process everything.<br><br>Individuals with green personalities do well in careers that allow them to apply all of the "big ideas" they have. They typically succeed in careers within higher education, science, technology development, and medicine.';
     }
 }
+
+function getOtherColorsDescription(color) {
+    if (color === 'ORANGE') {
+        return '<strong id="blue_color">BLUE</strong>, <strong id="gold_color">GOLD</strong>, and <strong id="green_color">GREEN</strong>';
+    }
+
+    else if (color === 'GOLD') {
+        return '<strong id="blue_color">BLUE</strong>, <strong id="ORANGE_color">ORANGE</strong>, and <strong id="green_color">GREEN</strong>';
+    }
+
+    else if (color === 'BLUE') {
+        return '<strong id="ORANGE_color">ORANGE</strong>, <strong id="gold_color">GOLD</strong>, and <strong id="green_color">GREEN</strong>';
+    }
+
+    else if (color === 'GREEN') {
+        return '<strong id="ORANGE_color">ORANGE</strong>, <strong id="blue_color">BLUE</strong>, and <strong id="gold_color">GOLD</strong>';
+    }
+
+}
+
+
 
 // Function that saves the current group number to local storage
 function saveState(group) {

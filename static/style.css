@@ -37,10 +37,10 @@ ul li {
 .test_starter {
   padding: 4rem;
   background-color: #fff;
-  border-radius: 50px;
+  border-radius: 100px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  width: 600px;
+  width: 750px;
   max-width: 100%;
 }
 
@@ -295,4 +295,14 @@ ul li {
 
 .dot:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+#other_colors_panel {
+  padding: 4rem;
+  background-color: #fff;
+  border-radius: 50px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  width: 800px;
+  max-width: 100%;
 }

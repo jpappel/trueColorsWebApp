@@ -424,88 +424,6 @@ def fetch_all_scores(email):
     result = [[value['score_orange'], value['score_blue'], value['score_gold'], value['score_green']] for value in user_test_scores.values()]
     return result
 
-# TEMPORARY FIX FOR PIE CHART TRY TO MAKE LESS DUPLICATE CODE THOUGH
-def fetch_all_scores():
-    '''
-    Fetches all scores from the database and calculates the color scores for each user.
-    '''
-    cursor, connection = connectToMySQL()
-    use_db = "USE TrueColors;"
-    cursor.execute(use_db)
-    cursor.execute("""
-        SELECT user_id, test_id, question_num, group_num, score
-        FROM responses
-        ORDER BY user_id, test_id, question_num, group_num
-    """)
-
-    rows = cursor.fetchall()
-    connection.close()
-
-    # Initialize a dictionary to store scores for each (user_id, test_id) combination
-    user_test_scores = {}
-
-    # Populate the dictionary with scores
-    for row in rows:
-        user_id = row[0]
-        test_id = row[1]
-        key = (user_id, test_id)
-
-        if key not in user_test_scores:
-            user_test_scores[key] = {'score_orange': 0, 'score_blue': 0, 'score_gold': 0, 'score_green': 0}
-        
-        q_num = row[2]
-        g_num = row[3]
-        score = row[4]
-
-        # Calculate scores based on the given formula
-        if q_num == 1 and g_num == 1:
-            user_test_scores[key]['score_orange'] += score
-        elif q_num == 2 and g_num == 4:
-            user_test_scores[key]['score_orange'] += score
-        elif q_num == 3 and g_num == 3:
-            user_test_scores[key]['score_orange'] += score
-        elif q_num == 4 and g_num == 2:
-            user_test_scores[key]['score_orange'] += score
-        elif q_num == 5 and g_num == 3:
-            user_test_scores[key]['score_orange'] += score
-        
-        if q_num == 1 and g_num == 3:
-            user_test_scores[key]['score_blue'] += score
-        elif q_num == 2 and g_num == 2:
-            user_test_scores[key]['score_blue'] += score
-        elif q_num == 3 and g_num == 2:
-            user_test_scores[key]['score_blue'] += score
-        elif q_num == 4 and g_num == 3:
-            user_test_scores[key]['score_blue'] += score
-        elif q_num == 5 and g_num == 2:
-            user_test_scores[key]['score_blue'] += score
-
-        if q_num == 1 and g_num == 2:
-            user_test_scores[key]['score_gold'] += score
-        elif q_num == 2 and g_num == 3:
-            user_test_scores[key]['score_gold'] += score
-        elif q_num == 3 and g_num == 1:
-            user_test_scores[key]['score_gold'] += score
-        elif q_num == 4 and g_num == 1:
-            user_test_scores[key]['score_gold'] += score
-        elif q_num == 5 and g_num == 4:
-            user_test_scores[key]['score_gold'] += score
-
-        if q_num == 1 and g_num == 4:
-            user_test_scores[key]['score_green'] += score
-        elif q_num == 2 and g_num == 1:
-            user_test_scores[key]['score_green'] += score
-        elif q_num == 3 and g_num == 4:
-            user_test_scores[key]['score_green'] += score
-        elif q_num == 4 and g_num == 4:
-            user_test_scores[key]['score_green'] += score
-        elif q_num == 5 and g_num == 1:
-            user_test_scores[key]['score_green'] += score
-
-    # Convert the dictionary to a list of lists containing only the scores
-    result = [[value['score_orange'], value['score_blue'], value['score_gold'], value['score_green']] for value in user_test_scores.values()]
-    return result
-
 
 @app.route('/fetch_data')
 def fetch_data():
@@ -618,6 +536,7 @@ def student_data(email, name):
             if not data:
                 return render_template('student_data.html', data=[], student_email=email, student_name=name)
             all_scores.append(data['scores'])
+            print("ALL SCORES:", all_scores)
             
         all_scores.reverse()  # Reverse the list to display the most recent test first
         return render_template('student_data.html', data=all_scores, all_data=all_data, student_email=email, student_name=name) #Index all_scores by a number to get that test number

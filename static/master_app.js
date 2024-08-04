@@ -12,12 +12,17 @@ document.addEventListener('DOMContentLoaded', () => {
             table.innerHTML = `
                 <tr>
                     <th>Name</th>
+                    <th>Most Recent Attempt</th>
+                    <th># of Attempts</th>
+
                 </tr>
             `;
             data.forEach(user => {
                 let row = document.createElement('tr');
                 row.innerHTML = `
                     <td><a href="/student_data/${user[1]}/${user[0]}">${user[0]}</a></td>
+                    <td>${user[2]}</td>
+                    <td>${user[3]}</td>
                 `;
                 table.appendChild(row);
             });
