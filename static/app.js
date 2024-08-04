@@ -386,10 +386,14 @@ info_button.addEventListener('click', () => {
     results_panel.style = 'display: none';
     info_panel.style = 'display:';
 
-    const user_description = document.getElementById('user_description');
-    user_description.innerHTML = getColorDescription(getHighestScore()[0]);
+    info_button_description(getHighestScore()[0]);
 
 })
+
+function info_button_description(color) {
+    const user_description = document.getElementById('user_description');
+    user_description.innerHTML = getColorDescription(color)
+}
 
 // Back button to hide info panel and display results panel again
 back_button_info.addEventListener('click', () => {
@@ -446,10 +450,33 @@ read_about_colors.addEventListener('click', () => {
     other_colors_panel.style.display = 'block';
 
     const other_colors_text = document.getElementById('other_colors_text');
-    other_colors_text.innerHTML = `Since you got ${getHighestScore()[0]}. Here is a brief description of the other colors: ${getOtherColorsDescription(getHighestScore()[0])}`;
+    //other_colors_text.innerHTML = `Since you got ${getHighestScore()[0]}. Here is a brief description of the other colors: ${getOtherColorsDescription(getHighestScore()[0])}`;
+    other_colors_text.innerHTML = `Please select whichever color you want to learn more about!`
+    
+})
 
+info_button_orange.addEventListener('click', () => {
+    info_button_description('ORANGE');
+    info_panel.style.display = 'block';
+    other_colors_panel.style.display = 'none';
+})
 
+info_button_blue.addEventListener('click', () => {
+    info_button_description('BLUE');
+    info_panel.style.display = 'block';
+    other_colors_panel.style.display = 'none';
+})
 
+info_button_gold.addEventListener('click', () => {
+    info_button_description('GOLD');
+    info_panel.style.display = 'block';
+    other_colors_panel.style.display = 'none';
+})
+
+info_button_green.addEventListener('click', () => {
+    info_button_description('GREEN');
+    info_panel.style.display = 'block';
+    other_colors_panel.style.display = 'none';
 })
 
 // Function to hide the other colors panel and display the results panel
