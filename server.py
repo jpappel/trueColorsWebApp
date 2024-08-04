@@ -342,7 +342,7 @@ def save_location():
 
     return "Location saved successfully.", 200 
 
-def fetch_all_scores(email):
+def fetch_all_scores_from_email(email):
     '''
     Fetches all scores from the database and calculates the color scores for each user.
     '''
@@ -457,7 +457,7 @@ def fetch_session_data():
 def fetch_all_percentages():
     email = request.args.get('email')
     try:
-        scores = fetch_all_scores(email)
+        scores = fetch_all_scores_from_email(email)
         cursor, connection = connectToMySQL()
         use_db = "USE TrueColors;"
         cursor.execute(use_db)
