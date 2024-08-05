@@ -529,12 +529,25 @@ def fetch_session_data():
     cursor, connection = connectToMySQL()
     use_db = "USE TrueColors;"
     cursor.execute(use_db)
-    cursor.execute("SELECT name, email FROM session;")
+    query = query = """
+    SELECT 
+        s.name, 
+        s.email,
+        MAX(q.time_stamp) AS latest_attempt,
+        COUNT(q.test_id) AS attempt_count
+    FROM 
+        session s
+    LEFT JOIN 
+        quiz q ON s.email = q.user_id
+    GROUP BY 
+        s.name, s.email;
+    """
+    cursor.execute(query)
     rows = cursor.fetchall()
     connection.close()
     return jsonify(rows)
 
-
+#TODO - FIX THE TIMESTAMP BEING DISPLAYED THE SAME FOR ALL STUDENTS
 @app.route('/fetch_all_percentages')
 def fetch_all_percentages():
     email = request.args.get('email')
