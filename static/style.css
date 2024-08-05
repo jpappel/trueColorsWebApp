@@ -298,11 +298,83 @@ ul li {
 }
 
 #other_colors_panel {
-  padding: 4rem;
+  padding: 2rem;
   background-color: #fff;
   border-radius: 50px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   width: 800px;
   max-width: 100%;
+}
+
+#info_button_orange {
+  background-color: orange;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-family: inherit;
+  padding: 1.3rem;
+}
+
+#info_button_orange:hover {
+  background-color: darkorange;
+}
+
+#info_button_green {
+  background-color: green;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-family: inherit;
+  padding: 1.3rem;
+}
+
+#info_button_green:hover {
+  background-color: darkgreen;
+}
+
+#info_button_gold {
+  background-color: rgb(228, 197, 21);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-family: inherit;
+  padding: 1.3rem;
+}
+
+#info_button_gold:hover {
+  background-color: rgb(177, 138, 37);
+}
+
+#info_button_blue {
+  background-color: blue;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-family: inherit;
+  padding: 1.3rem;
+}
+
+#info_button_blue:hover {
+  background-color: darkblue;
 }
