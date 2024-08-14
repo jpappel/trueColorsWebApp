@@ -43,8 +43,44 @@
                                         <th>Color</th>
                                         <th>Score</th>
                                         <th>Percentage</th>
+                                        <canvas id="TeacherPieChart{{loop.revindex}}" width="200" height="200"></canvas>
+                                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                                        <script>
+                                            let labels{{loop.revindex}} = ['Orange', 'Blue', 'Gold', 'Green'];
+                                            let counts{{loop.revindex}} = [];
+                                            counts{{loop.revindex}}.push({{ attempt | tojson}}[0].score);
+                                            counts{{loop.revindex}}.push({{ attempt | tojson}}[1].score);
+                                            counts{{loop.revindex}}.push({{ attempt | tojson}}[2].score);
+                                            counts{{loop.revindex}}.push({{ attempt | tojson}}[3].score);
+                                            console.log("Counts in pie chart: " + counts{{loop.revindex}})
+                                            let chart{{loop.revindex}} = document.getElementById('TeacherPieChart{{loop.revindex}}').getContext('2d');
+                                            let teacher_color_distribution_chart{{loop.revindex}} = new Chart(chart{{loop.revindex}}, {
+                                                type: 'pie',
+                                                data: {
+                                                    labels: labels{{loop.revindex}},
+                                                    datasets: [{
+                                                        data: counts{{loop.revindex}},
+                                                        backgroundColor: labels{{loop.revindex}}, // Background Colors
+                                                    }]
+                                                },
+                                                options: {
+                                                    responsive: false,
+                                                    maintainAspectRatio: false, // This line and above are to make the chart not automatically resize
+                                                    plugins: {
+                                                        title: {
+                                                            display: true,
+                                                            text: 'Color Distribution for This Test',
+                                                            color: 'black',
+                                                            weight: 'bold',
+                                                            font: {
+                                                                size: 30,
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        </script>
                                       
-                                       
                                     </tr>
                                 </thead>
                                 <tbody>
