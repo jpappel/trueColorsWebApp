@@ -45,10 +45,10 @@
                                         <th>Percentage</th>
                                         <canvas id="TeacherPieChart{{loop.revindex}}" width="200" height="200"></canvas>
                                         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                                        <script>
+                                        <script> // loop.revindex is needed to give variables a unique name
                                             let labels{{loop.revindex}} = ['Orange', 'Blue', 'Gold', 'Green'];
                                             let counts{{loop.revindex}} = [];
-                                            counts{{loop.revindex}}.push({{ attempt | tojson}}[0].score);
+                                            counts{{loop.revindex}}.push({{ attempt | tojson}}[0].score); // Grabs the attempt variable from the html, and indexes it to get the score for each color
                                             counts{{loop.revindex}}.push({{ attempt | tojson}}[1].score);
                                             counts{{loop.revindex}}.push({{ attempt | tojson}}[2].score);
                                             counts{{loop.revindex}}.push({{ attempt | tojson}}[3].score);
@@ -80,6 +80,12 @@
                                                 }
                                             });
                                         </script>
+                                        <style>
+                                            #TeacherPieChart{{loop.revindex}} {
+                                                margin-left: 40%;
+                                                margin-bottom: 3%;
+                                            }
+                                        </style>
                                       
                                     </tr>
                                 </thead>
