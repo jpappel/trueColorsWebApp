@@ -563,7 +563,7 @@ def fetch_all_percentages():
 
         # Fetch timestamps for each test attempt
 
-        cursor.execute("SELECT user_id, test_id, time_stamp FROM quiz WHERE user_id = %s ORDER BY test_id, user_id;", (email,))
+        cursor.execute("SELECT user_id, test_id, time_stamp, description FROM quiz WHERE user_id = %s ORDER BY test_id, user_id;", (email,))
         quiz_data = cursor.fetchall()
         quiz_data.reverse()  # Reverse the list to display the most recent test first
         print("QUIZ DATA:", quiz_data)
