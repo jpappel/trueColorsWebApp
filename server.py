@@ -548,7 +548,6 @@ def fetch_session_data():
     connection.close()
     return jsonify(rows)
 
-#TODO - FIX THE TIMESTAMP BEING DISPLAYED THE SAME FOR ALL STUDENTS
 @app.route('/fetch_all_percentages')
 def fetch_all_percentages():
     email = request.args.get('email')
@@ -563,6 +562,7 @@ def fetch_all_percentages():
         session_data = cursor.fetchall()
 
         # Fetch timestamps for each test attempt
+
         cursor.execute("SELECT user_id, test_id, time_stamp FROM quiz WHERE user_id = %s ORDER BY test_id, user_id;", (email,))
         quiz_data = cursor.fetchall()
         quiz_data.reverse()  # Reverse the list to display the most recent test first
@@ -612,7 +612,8 @@ def fetch_all_percentages():
             # Append session data and percentages to the response list
             all_data.append({
                 'scores': percentages,
-                'timestamp': timestamp  # Include formatted timestamp
+                'timestamp': timestamp,  # Include formatted timestamp
+                'description': quiz_data[idx][3]
             })
 
     except Exception as e:
