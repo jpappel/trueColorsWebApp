@@ -3,6 +3,7 @@ const verify_panel = document.getElementById('verify_panel');
 const start_panel = document.getElementById('start_panel');
 const test_container = document.getElementById('test_container');
 const results_panel = document.getElementById('results_panel');
+const results_title = document.getElementById('results_title');
 const info_panel = document.getElementById('info_panel');
 const pie_chart = document.getElementById('pie_chart_container');
 const full_results_panel = document.getElementById('full_results_panel');
@@ -105,6 +106,7 @@ start_button.addEventListener('click', () => {
 
     if (location_button.value === 'Choose_Location') {
         alert("Please select a location before continuing.")
+        localStorage.removeItem('quizLocation');
         return;
     }
 
@@ -504,6 +506,7 @@ function getColorDescription(color) {
     else if (color === 'GREEN') {
         return '<strong>Your Dominant Color is <strong id="green_color">GREEN</strong>!</strong><br><br>Others often describe you as extremely intelligent. You have an innate desire to do things to the best of your ability and take pride in your work. At work, you set the standard for everyone else. To you, work is truly enjoyable. Even on the weekends, you can\'t stand the thought of wasting a day by doing nothing, and always try to fit as much into each day as possible.<br><br>You are also a big thinker. You enjoy talking with others about abstract, philosophical ideas. You enjoy thinking about the future and all of its possibilities. You believe that you should never stop learning, and enjoy learning new information simply for your own enjoyment. In the workplace, you are a creative "idea person" who comes up with creative and practical solutions to problems.<br><br>You are very independent. Although you enjoy spending time with others, you need your private time each day to recharge. This gives you time to process everything.<br><br>Individuals with green personalities do well in careers that allow them to apply all of the "big ideas" they have. They typically succeed in careers within higher education, science, technology development, and medicine.';
     }
+
 }
 
 function getOtherColorsDescription(color) {
@@ -633,8 +636,34 @@ function displayResults() {
     const result_color = getHighestScore();
     const user_result = document.getElementById('user_result');
 
-    user_result.textContent = result_color;
-    user_result.style = `color: ${result_color}`;
+    if (result_color.length > 1) {
+        results_title.textContent = `Your dominant colors are: `;
+
+        user_result.innerHTML = '';
+        for (let i = 0; i < result_color.length; i++) {
+            if (result_color[i] === 'ORANGE') {
+                user_result.textContent += `<strong id="orange_color">ORANGE </strong>`;
+            }
+                
+                else if (result_color[i] === 'BLUE') {
+                    user_result.innerHTML += `<strong id="blue_color">BLUE </strong>`;
+                }
+        
+                else if (result_color[i] === 'GOLD') {
+                   user_result.innerHTML += `<strong id="gold_color">GOLD </strong>`;
+                }
+        
+                else if (result_color[i] === 'GREEN') {
+                    user_result.innerHTML += `<strong id="green_color">GREEN </strong>`;
+                }
+        }
+    }
+
+    if (result_color.length === 1) {
+        results_title.textContent = `Your dominant color is: `;
+        user_result.textContent = result_color;
+        user_result.style = `color: ${result_color}`;
+    }
 
     destroyDistributionChart();
     renderDistributionChart();
