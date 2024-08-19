@@ -357,6 +357,7 @@ def fetch_all_scores_from_email(email):
     """, (email,))
 
     rows = cursor.fetchall()
+    print(f"ROWS FOR EMAIL: {email}s ROWS: {rows}", rows)
     connection.close()
 
     # Initialize a dictionary to store scores for each (user_id, test_id) combination
@@ -552,6 +553,8 @@ def fetch_all_percentages():
     email = request.args.get('email')
     try:
         scores = fetch_all_scores_from_email(email)
+        print("SCORES:", scores)
+        print("FOR EMAIL:" , email)
         cursor, connection = connectToMySQL()
         use_db = "USE TrueColors;"
         cursor.execute(use_db)
@@ -559,9 +562,11 @@ def fetch_all_percentages():
         session_data = cursor.fetchall()
 
         # Fetch timestamps for each test attempt
-        cursor.execute("SELECT user_id, test_id, time_stamp, description FROM quiz ORDER BY test_id, user_id;")
+
+        cursor.execute("SELECT user_id, test_id, time_stamp, description FROM quiz WHERE user_id = %s ORDER BY test_id, user_id;", (email,))
         quiz_data = cursor.fetchall()
         quiz_data.reverse()  # Reverse the list to display the most recent test first
+        print("QUIZ DATA:", quiz_data)
         
         connection.close()
 
@@ -595,9 +600,14 @@ def fetch_all_percentages():
                     'percentage': round((score[3] / 50) * 100, 1)
                 }
             ]
+            print("PERCENTAGES:", percentages)
 
             # Find the corresponding timestamp for the test attempt
+            print('QUIZ DATA TEST quiz_data[idx]:', quiz_data[idx])
+            print('QUIZ DATA TEST 2 quiz_data[idx][2]:', quiz_data[idx][2])
+            print('IDX', idx)
             timestamp = quiz_data[idx][2].strftime('%m-%d-%Y %H:%M:%S')
+            print("TIMESTAMP:", timestamp)
 
             # Append session data and percentages to the response list
             all_data.append({
@@ -623,7 +633,10 @@ def student_data(email, name):
     try:
         # Fetch all data from the /fetch_all_percentages endpoint
         response = requests.get(url_for('fetch_all_percentages', email=email, _external=True))
+        
         all_data = response.json()
+        print("STUDENT DATA RESPONSE:", all_data)
+        print("NAME:", name)
 
         # Filter data for the specific student
         all_scores = []
