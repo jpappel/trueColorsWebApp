@@ -183,13 +183,85 @@ sudo /home/ec2-user/trueColorsWebApp/.venv/bin/gunicorn -w4 --bind 0.0.0.0:80 --
 
 If successful, you should be able to enter the IP address of the EC2 instance in your browser's search bar and access the functioning True Colors personality test.
 
-
-Document new stuff!!!
-
-In order to make the database work I had to use this command
+In order to make the database work in the webapps box I had to use this command
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your_password';
 FLUSH PRIVILEGES;
 
 
+### Steps to login into TrueColors
+- Clone the respository from github https://github.com/MoravianUniversity/trueColorsWebApp
+- cd into the respository after it has been cloned
+- Install the requirements.txt file into a virtual environment. This can be done using the following commands
+```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+- Create the database. To do this, log into mysql and create the database TrueColors, using the following commands
+```
+mysql -u YOUR_USERNAME -p
+CREATE DATABASE TrueColors;
+exit
+```
+This creates the database, and after that is done, use the following commands to populate the database
+```
+mysql -u YOUR_USERNAME -p TrueColors < database/create.sql 
+mysql -u YOUR_USERNAME -p TrueColors < database/insert.sql
+```
+This will prompt you for your mysql password.
+
+- Finally, you must create a .env file which is individual to you. The .env file must look like this:
+```
+GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"
+FLASK_SECRET_KEY = "YOUR_FLASK_SECRET_KEY"
+MYSQL_HOST = "localhost"
+MYSQL_USERNAME = "YOUR_USERNAME"
+MYSQL_PASSWORD = "YOUR_PASSWORD"
+MYSQL_DB = "TrueColors"
+GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET
+```
+In order to get a secure FLASK_SECRET_KEY, you can use python secrets. In order to do this, in your terminal, perform the following commands
+```
+python3
+import secrets
+print(secrets.token_hex())
+```
+This will print a long string of numbers and letters. Copy this, and make this the value for the FLASK_SECRET_KEY
+
+Replace MYSQL_USERNAME and MYSQL_PASSWORD with your appropriate mysql username and password respectively.
+
+In order to get a GOOGLE_CLIENT_ID and a GOOGLE_CLIENT_SECRET, you must get them from the google console api website. 
+To do this, go to the following website:
+
+https://console.cloud.google.com
+
+Agree to the terms of services, and then in the top left, click "Select A Project"
+There will be an option in the pop-up box to create a new project. Select that to create a new project
+Give your project a name (for example, TrueColors) and for the organization and location, make sure it is moravian.edu so only moravian students can access the quiz.
+
+Now you can go back to the "Select A Project" option and select your newly created project.
+Afterwards, on the left, select APIs and Services, and select under that, OAuth Consent Screen.
+
+For the usertype, click internal and then create. Give the app a name, and for the support email and developer contact email, you may use your own email.
+Now at the bottom you can click save and continue, and on the next screen also click save and continue at the bottom and click "go back to dashboard"
+
+After this, on the leftside under APIs and Services, click credentials. 
+Now click + create credentials, and select OAuth Client ID
+In the dropdown, select Web Application. Give the application a name and where it says Authorized Redirect URIs, include the following three Redirect URI's:
+
+http://127.0.0.1:8000/login
+http://127.0.0.1:8000/authorize
+http://localhost:8000/authorize
+
+After this, click create.
+
+A pop-up will appear showing your google client id, and your google client secret. These are the respective GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET values that you should put in your .env file!
+
+If you need to grab them again at any time, you may click your application name in credentials under APIs and Services and they will be displayed on the right.
+
+- Run server.py with ```python3 server.py``` and all should be well!
 
 
+Please note, that in order for a student to sign into the student sign in for the quiz, they must have a valid moravian.edu domain email.
+
+Please note, that in order for someone to sign into the faculty page, their email must be in the allowed_faculty_emails list in server.py on line 95
