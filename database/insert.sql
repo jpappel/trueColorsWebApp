@@ -1,14 +1,62 @@
-INSERT INTO q_group_1 (letterA, A1, A2, A3, letterB, B1, B2, B3, letterC, C1, C2, C3, letterD, D1, D2, D3) VALUES
-('A', 'Active', 'Opportunistic', 'Spontaneous', 'B', 'Parental', 'Traditional', 'Responsible', 'C', 'Authentic', 'Harmonious', 'Compassionate', 'D', 'Versatile', 'Inventive', 'Competent');
-
-INSERT INTO q_group_2 (letterE, E1, E2, E3, letterF, F1, F2, F3, letterG, G1, G2, G3, letterH, H1, H2, H3) VALUES
-('E', 'Curious', 'Conceptual', 'Knowledgeable', 'F', 'Unique', 'Empathetic', 'Communicative', 'G', 'Practical', 'Sensible', 'Dependable', 'H', 'Competitive', 'Impetuous', 'Impactful');
-
-INSERT INTO q_group_3 (letterI, I1, I2, I3, letterJ, J1, J2, J3, letterK, K1, K2, K3, letterL, L1, L2, L3) VALUES
-('I', 'Loyal', 'Conservative', 'Organized', 'J', 'Devoted', 'Warm', 'Poetic', 'K', 'Realistic', 'Open-minded', 'Adventuresome', 'L', 'Theoretical', 'Seeking', 'Ingenious');
-
-INSERT INTO q_group_4 (letterM, M1, M2, M3, letterN, N1, N2, N3, letterO, O1, O2, O3, letterP, P1, P2, P3) VALUES
-('M', 'Concerned', 'Procedural', 'Cooperative', 'N', 'Daring', 'Impulsive', 'Fun', 'O', 'Tender', 'Inspirational', 'Dramatic', 'P', 'Determined', 'Complex', 'Composed');
-
-INSERT INTO q_group_5 (letterQ, Q1, Q2, Q3, letterR, R1, R2, R3, letterS, S1, S2, S3, letterT, T1, T2, T3) VALUES
-('Q', 'Philosophical', 'Principled', 'Rational', 'R', 'Vivacious', 'Affectionate', 'Sympathetic', 'S', 'Exciting', 'Courageous', 'Skillful', 'T', 'Orderly', 'Conventional', 'Caring');
+-- Quiz questions
+INSERT INTO questions (question_num, group_num, word_num, word) VALUES
+(1, 1, 1, 'Active'),
+(1, 1, 2, 'Opportunistic'),
+(1, 1, 3, 'Spontaneous'),
+(1, 2, 1, 'Parental'),
+(1, 2, 2, 'Traditional'),
+(1, 2, 3, 'Responsible'),
+(1, 3, 1, 'Authentic'),
+(1, 3, 2, 'Harmonious'),
+(1, 3, 3, 'Compassionate'),
+(1, 4, 1, 'Versatile'),
+(1, 4, 2, 'Inventive'),
+(1, 4, 3, 'Competent'),
+(2, 1, 1, 'Curious'),
+(2, 1, 2, 'Conceptual'),
+(2, 1, 3, 'Knowledgeable'),
+(2, 2, 1, 'Unique'),
+(2, 2, 2, 'Empathetic'),
+(2, 2, 3, 'Communicative'),
+(2, 3, 1, 'Practical'),
+(2, 3, 2, 'Sensible'),
+(2, 3, 3, 'Dependable'),
+(2, 4, 1, 'Competitive'),
+(2, 4, 2, 'Impetuous'),
+(2, 4, 3, 'Impactful'),
+(3, 1, 1, 'Loyal'),
+(3, 1, 2, 'Conservative'),
+(3, 1, 3, 'Organized'),
+(3, 2, 1, 'Devoted'),
+(3, 2, 2, 'Warm'),
+(3, 2, 3, 'Poetic'),
+(3, 3, 1, 'Realistic'),
+(3, 3, 2, 'Open-minded'),
+(3, 3, 3, 'Adventuresome'),
+(3, 4, 1, 'Theoretical'),
+(3, 4, 2, 'Seeking'),
+(3, 4, 3, 'Ingenious'),
+(4, 1, 1, 'Concerned'),
+(4, 1, 2, 'Procedural'),
+(4, 1, 3, 'Cooperative'),
+(4, 2, 1, 'Daring'),
+(4, 2, 2, 'Impulsive'),
+(4, 2, 3, 'Fun'),
+(4, 3, 1, 'Tender'),
+(4, 3, 2, 'Inspirational'),
+(4, 3, 3, 'Dramatic'),
+(4, 4, 1, 'Determined'),
+(4, 4, 2, 'Complex'),
+(4, 4, 3, 'Composed'),
+(5, 1, 1, 'Philosophical'),
+(5, 1, 2, 'Principled'),
+(5, 1, 3, 'Rational'),
+(5, 2, 1, 'Vivacious'),
+(5, 2, 2, 'Affectionate'),
+(5, 2, 3, 'Sympathetic'),
+(5, 3, 1, 'Exciting'),
+(5, 3, 2, 'Courageous'),
+(5, 3, 3, 'Skillful'),
+(5, 4, 1, 'Orderly'),
+(5, 4, 2, 'Conventional'),
+(5, 4, 3, 'Caring');
