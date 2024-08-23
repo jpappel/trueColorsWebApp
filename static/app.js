@@ -11,6 +11,7 @@ const location_button = document.getElementById('quiz_location');
 const location_button_label = document.getElementById('quiz_location_label');
 const welcome_panel = document.getElementById('welcome_panel');
 const other_colors_panel = document.getElementById('other_colors_panel');
+const logout_button = document.getElementById('verify_button');
 let myChart;
 let color_distribution_chart;
 
@@ -109,33 +110,15 @@ start_button.addEventListener('click', () => {
         localStorage.removeItem('quizLocation');
         return;
     }
-
+    
     localStorage.setItem('quizLocation', location_button.value);
 
-    // Save the location to the database
-    fetch('/save_location', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ location: location_button.value })
-    })
-
-    .then(response => {
-        if (response.ok) {
-            console.log('Location saved successfully.');
-            // Redirect to the next part of the quiz or show a success message
-            start_panel.style = 'display: none';
-            test_container.style = 'display: contents';
-            location_button.style.display = 'none';
-            location_button_label.style.display = 'none';
-            loadQuestions();
-
-        } else {
-            console.log('Failed to save location.');
-        }
-    })
-    .catch(error => console.log('Error:', error));
+    // Redirect to the next part of the quiz
+    start_panel.style = 'display: none';
+    test_container.style = 'display: contents';
+    location_button.style.display = 'none';
+    location_button_label.style.display = 'none';
+    loadQuestions();
 });
 
 function setDropdownValue() {
@@ -642,7 +625,7 @@ function displayResults() {
         user_result.innerHTML = '';
         for (let i = 0; i < result_color.length; i++) {
             if (result_color[i] === 'ORANGE') {
-                user_result.textContent += `<strong id="orange_color">ORANGE </strong>`;
+                user_result.innerHTML += `<strong id="orange_color">ORANGE </strong>`;
             }
                 
                 else if (result_color[i] === 'BLUE') {
@@ -665,6 +648,14 @@ function displayResults() {
         user_result.style = `color: ${result_color}`;
     }
 
+    fetch('/save_location', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ location: location_button.value })
+    })
+
     destroyDistributionChart();
     renderDistributionChart();
 
@@ -672,6 +663,7 @@ function displayResults() {
     
     localStorage.removeItem('currentGroup');
     removeRadioSelectionsFromLS();
+    localStorage.removeItem('quizLocation');
     
 }
 
