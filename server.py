@@ -41,7 +41,7 @@ oauth.register(
     clock_skew_in_seconds=10
 )
 
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Only for testing purposes
+#os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Only for testing purposes
 
 # Google OAuth configuration
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
@@ -78,15 +78,8 @@ def master_index():
 def login():
     google = oauth.create_client('google') # Create/get the google client above
     redirect_uri = url_for('authorize', _external=True)
-    session.pop('is_faculty', None)
+    session.pop('is_faculty', None) # Remove the faculty flag if it exists since this is regular student login
     return oauth.google.authorize_redirect(redirect_uri)
-    #authorization_url, state = flow.authorization_url()
-    #print("STATE IN LOGIN:", state)
-    #session['state'] = state 
-    #print("STATE IN LOGIN AFTER SETTING IT:" , session['state'])
-    #session.pop('is_faculty', None)  # Remove the faculty flag if it exists
-    #return redirect(authorization_url)
-
 
 # Redirect faculty to Google content screen
 @app.route('/faculty_redirect')
@@ -121,41 +114,10 @@ def authorize():
     token = oauth.google.authorize_access_token()
     resp = oauth.google.get('userinfo')
     user_info = resp.json()
-    print("USER INFO:", user_info)
     # Do something with the token and profile
     session['email'] = user_info['email']
     session['name'] = user_info['name']
     session['google_id'] = user_info['id']
-
-    #flow.fetch_token(authorization_response=request.url)
-
-    #print("ENTERING FOR LOOP")
-    #if len(list(session.keys())) == 0:
-        #print("SESSION IS EMPTY")
-    #for key in list(session.keys()):
-        #print("KEY:", key)
-    #print("REQEST STATE?", request.args['state'])
-
-    #if not session['state'] == request.args['state']:
-        #print(session['state'])
-        #print(request.args['state'])
-        #return abort(500)  # State does not match!
-    
-    #credentials = flow.credentials
-    #request_session = flow.authorized_session()
-    #cached_session = cachecontrol.CacheControl(request_session)  # Use cachecontrol
-    #token_request = google.auth.transport.requests.Request(session=cached_session)
-
-
-    #id_info = id_token.verify_oauth2_token(
-        #id_token=credentials.id_token,
-        #request=token_request,
-        #audience=GOOGLE_CLIENT_ID,
-        #clock_skew_in_seconds=10) # Testing this to allow for some clock skew
-    
-    #session['google_id'] = id_info.get('sub')
-    #session['name'] = id_info.get('name')
-    #session['email'] = id_info.get('email')
 
     cursor, cnx = connectToMySQL()
 
@@ -357,7 +319,6 @@ def fetch_all_scores_from_email(email):
     """, (email,))
 
     rows = cursor.fetchall()
-    print(f"ROWS FOR EMAIL: {email}s ROWS: {rows}", rows)
     connection.close()
 
     # Initialize a dictionary to store scores for each (user_id, test_id) combination
@@ -553,8 +514,6 @@ def fetch_all_percentages():
     email = request.args.get('email')
     try:
         scores = fetch_all_scores_from_email(email)
-        print("SCORES:", scores)
-        print("FOR EMAIL:" , email)
         cursor, connection = connectToMySQL()
         use_db = "USE TrueColors;"
         cursor.execute(use_db)
@@ -566,7 +525,6 @@ def fetch_all_percentages():
         cursor.execute("SELECT user_id, test_id, time_stamp, description FROM quiz WHERE user_id = %s ORDER BY test_id, user_id;", (email,))
         quiz_data = cursor.fetchall()
         quiz_data.reverse()  # Reverse the list to display the most recent test first
-        print("QUIZ DATA:", quiz_data)
         
         connection.close()
 
@@ -600,14 +558,9 @@ def fetch_all_percentages():
                     'percentage': round((score[3] / 50) * 100, 1)
                 }
             ]
-            print("PERCENTAGES:", percentages)
 
             # Find the corresponding timestamp for the test attempt
-            print('QUIZ DATA TEST quiz_data[idx]:', quiz_data[idx])
-            print('QUIZ DATA TEST 2 quiz_data[idx][2]:', quiz_data[idx][2])
-            print('IDX', idx)
             timestamp = quiz_data[idx][2].strftime('%m-%d-%Y %H:%M:%S')
-            print("TIMESTAMP:", timestamp)
 
             # Append session data and percentages to the response list
             all_data.append({
@@ -635,8 +588,6 @@ def student_data(email, name):
         response = requests.get(url_for('fetch_all_percentages', email=email, _external=True))
         
         all_data = response.json()
-        print("STUDENT DATA RESPONSE:", all_data)
-        print("NAME:", name)
 
         # Filter data for the specific student
         all_scores = []
