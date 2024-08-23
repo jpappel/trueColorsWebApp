@@ -1,21 +1,20 @@
-from flask import Flask, abort, jsonify, redirect, request, session, render_template, url_for
 import dotenv
 import os
 import uuid
 import mysql.connector
 import pathlib
 import requests
+import google.auth.transport.requests
+import pip._vendor.cachecontrol as cachecontrol
+import time
+import redis
+from authlib.integrations.flask_client import OAuth
 from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
 from google.oauth2 import id_token
-import google.auth.transport.requests
-import pip._vendor.cachecontrol as cachecontrol
 from functools import wraps
-import time
+from flask import Flask, abort, jsonify, redirect, request, session, render_template, url_for
 from flask_session import Session
-import redis
-from authlib.integrations.flask_client import OAuth
-
 
 dotenv.load_dotenv()
 if not os.getenv('FLASK_SECRET_KEY'):
@@ -41,16 +40,8 @@ oauth.register(
     clock_skew_in_seconds=10
 )
 
-#os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Only for testing purposes
-
 # Google OAuth configuration
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
-client_secrets_file = os.path.join(pathlib.Path(__file__).parent, 'client_secrets.json')
-
-#flow = Flow.from_client_secrets_file(
-    #client_secrets_file=client_secrets_file,
-    #scopes=['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email', 'openid'],
-    #redirect_uri= os.getenv('REDIRECT_URI'))
 
 def login_is_required(function):
     @wraps(function)
@@ -62,7 +53,7 @@ def login_is_required(function):
     return wrapper
 
 @app.route('/quiz')
-@login_is_required
+@login_is_required # Decorator to check if the user is logged in
 def quiz():
     user_name = session.get('name')
     return render_template("quiz.html", user_name=user_name)
@@ -103,9 +94,6 @@ def faculty_login():
     redirect_uri = url_for('authorize', _external=True)
     session['is_faculty'] = True  # Set a flag to identify faculty users
     return oauth.google.authorize_redirect(redirect_uri)
-    #authorization_url, state = flow.authorization_url()
-    #session['state'] = state
-    #eturn redirect(authorization_url)
 
 @app.route('/authorize')
 def authorize():
@@ -114,7 +102,7 @@ def authorize():
     token = oauth.google.authorize_access_token()
     resp = oauth.google.get('userinfo')
     user_info = resp.json()
-    # Do something with the token and profile
+    # Store the user's email, google_id, and name in the session
     session['email'] = user_info['email']
     session['name'] = user_info['name']
     session['google_id'] = user_info['id']
@@ -147,7 +135,7 @@ def authorize():
         cursor.close()
         cnx.close()
 
-    # Redirect based on the user type
+    # Redirect based on the user type (faculty or student)
     if session.get('is_faculty'):
         return redirect('/faculty_redirect')
     else:
@@ -156,28 +144,16 @@ def authorize():
 # Clear login session from the user
 @app.route('/logout') 
 def logout():
-    #session.clear()
-    for key in list(session.keys()):
+    for key in list(session.keys()): # Clear all keys from the session data
         session.pop(key)
     return redirect('/')
 
-# Route to get session data
-@app.route('/session_data')
-def session_data():
-    return jsonify(dict(session))
-
+# Default route to render index.html
 @app.route('/')
 def index():
     return render_template("index.html")
     
-#def getId():
-    #if 'uuid' not in session:
-        #id = str(uuid.uuid4())
-        #session['uuid'] = id
-    #else:
-        #id = session['uuid']
-    #return id
-    
+# Gets all the questions from the database
 @app.route('/getQuestions')
 def get_questions():
     MYSQL_DB = os.getenv('MYSQL_DB')
@@ -213,12 +189,13 @@ def get_questions():
 
     return jsonify(questions)
     
+# Stores the user's scores in the database
 @app.route('/storeResult', methods=['POST'])
 def store_result():
     '''
     Stores the user's color result in the database.
     '''
-    id = session['email']
+    email = session['email']
     data = request.get_json()
     results = data['results']
 
@@ -245,7 +222,7 @@ def store_result():
         
         test_id = """SELECT test_id FROM response_flags WHERE user_id = %s;"""
 
-        cursor.execute(select_query, (id, new_test_id, question_num, group_num))
+        cursor.execute(select_query, (email, new_test_id, question_num, group_num))
         existing_record = cursor.fetchone()
 
         if existing_record:
@@ -254,13 +231,13 @@ def store_result():
             SET score = %s 
             WHERE user_id = %s AND test_id = %s AND question_num = %s AND group_num = %s;
             """
-            cursor.execute(update_query, (score, id, new_test_id, question_num, group_num))
+            cursor.execute(update_query, (score, email, new_test_id, question_num, group_num))
         else:
             insert_query = """
             INSERT INTO responses (user_id, test_id, question_num, group_num, score) 
             VALUES (%s, %s, %s, %s, %s);
             """
-            cursor.execute(insert_query, (id, new_test_id, question_num, group_num, score))
+            cursor.execute(insert_query, (email, new_test_id, question_num, group_num, score))
 
     connection.commit()
     cursor.close()
@@ -277,7 +254,7 @@ def save_location():
     if not location:
         return "No location provided.", 400
 
-    id = session['email']
+    email = session['email']
     
     cursor, connection = connectToMySQL()
     
@@ -296,7 +273,7 @@ def save_location():
     last_test_id = cursor.fetchone()[0]
     new_test_id = 1 if last_test_id is None else last_test_id + 1
 
-    cursor.execute(insert_location, (id, new_test_id, location))
+    cursor.execute(insert_location, (email, new_test_id, location))
 
     connection.commit()
     cursor.close()
@@ -304,6 +281,7 @@ def save_location():
 
     return "Location saved successfully.", 200 
 
+# Fetches all scores from a specific email
 def fetch_all_scores_from_email(email):
     '''
     Fetches all scores from the database and calculates the color scores for each user.
@@ -321,72 +299,11 @@ def fetch_all_scores_from_email(email):
     rows = cursor.fetchall()
     connection.close()
 
-    # Initialize a dictionary to store scores for each (user_id, test_id) combination
-    user_test_scores = {}
-
-    # Populate the dictionary with scores
-    for row in rows:
-        user_id = row[0]
-        test_id = row[1]
-        key = (user_id, test_id)
-
-        if key not in user_test_scores:
-            user_test_scores[key] = {'score_orange': 0, 'score_blue': 0, 'score_gold': 0, 'score_green': 0}
-        
-        q_num = row[2]
-        g_num = row[3]
-        score = row[4]
-
-        # Calculate scores based on the given formula
-        if q_num == 1 and g_num == 1:
-            user_test_scores[key]['score_orange'] += score
-        elif q_num == 2 and g_num == 4:
-            user_test_scores[key]['score_orange'] += score
-        elif q_num == 3 and g_num == 3:
-            user_test_scores[key]['score_orange'] += score
-        elif q_num == 4 and g_num == 2:
-            user_test_scores[key]['score_orange'] += score
-        elif q_num == 5 and g_num == 3:
-            user_test_scores[key]['score_orange'] += score
-        
-        if q_num == 1 and g_num == 3:
-            user_test_scores[key]['score_blue'] += score
-        elif q_num == 2 and g_num == 2:
-            user_test_scores[key]['score_blue'] += score
-        elif q_num == 3 and g_num == 2:
-            user_test_scores[key]['score_blue'] += score
-        elif q_num == 4 and g_num == 3:
-            user_test_scores[key]['score_blue'] += score
-        elif q_num == 5 and g_num == 2:
-            user_test_scores[key]['score_blue'] += score
-
-        if q_num == 1 and g_num == 2:
-            user_test_scores[key]['score_gold'] += score
-        elif q_num == 2 and g_num == 3:
-            user_test_scores[key]['score_gold'] += score
-        elif q_num == 3 and g_num == 1:
-            user_test_scores[key]['score_gold'] += score
-        elif q_num == 4 and g_num == 1:
-            user_test_scores[key]['score_gold'] += score
-        elif q_num == 5 and g_num == 4:
-            user_test_scores[key]['score_gold'] += score
-
-        if q_num == 1 and g_num == 4:
-            user_test_scores[key]['score_green'] += score
-        elif q_num == 2 and g_num == 1:
-            user_test_scores[key]['score_green'] += score
-        elif q_num == 3 and g_num == 4:
-            user_test_scores[key]['score_green'] += score
-        elif q_num == 4 and g_num == 4:
-            user_test_scores[key]['score_green'] += score
-        elif q_num == 5 and g_num == 1:
-            user_test_scores[key]['score_green'] += score
-
-    # Convert the dictionary to a list of lists containing only the scores
-    result = [[value['score_orange'], value['score_blue'], value['score_gold'], value['score_green']] for value in user_test_scores.values()]
+    result = create_score_dictionary(rows)
     return result
 
-# TEMPORARY FIX FOR PIE CHART TRY TO MAKE LESS DUPLICATE CODE THOUGH
+# Endpoint to fetch all scores from the database
+@app.route('/fetch_data')
 def fetch_all_scores():
     '''
     Fetches all scores from the database and calculates the color scores for each user.
@@ -402,7 +319,11 @@ def fetch_all_scores():
 
     rows = cursor.fetchall()
     connection.close()
+    result = create_score_dictionary(rows)
+    return jsonify(result)
 
+# Creates a dictionary of scores based on the rows passed in the parameter
+def create_score_dictionary(rows):
     # Initialize a dictionary to store scores for each (user_id, test_id) combination
     user_test_scores = {}
 
@@ -414,7 +335,7 @@ def fetch_all_scores():
 
         if key not in user_test_scores:
             user_test_scores[key] = {'score_orange': 0, 'score_blue': 0, 'score_gold': 0, 'score_green': 0}
-
+        
         q_num = row[2]
         g_num = row[3]
         score = row[4]
@@ -430,7 +351,7 @@ def fetch_all_scores():
             user_test_scores[key]['score_orange'] += score
         elif q_num == 5 and g_num == 3:
             user_test_scores[key]['score_orange'] += score
-
+        
         if q_num == 1 and g_num == 3:
             user_test_scores[key]['score_blue'] += score
         elif q_num == 2 and g_num == 2:
@@ -468,21 +389,7 @@ def fetch_all_scores():
     result = [[value['score_orange'], value['score_blue'], value['score_gold'], value['score_green']] for value in user_test_scores.values()]
     return result
 
-
-@app.route('/fetch_data')
-def fetch_data():
-    '''
-    Uses the fetch_all_scores function to return all scores.
-    '''
-    try:
-        scores = fetch_all_scores()
-        return jsonify(scores)
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-    
-
+# Fetches the session data from the database
 @app.route('/fetch_session_data')
 def fetch_session_data():
     '''
@@ -509,8 +416,8 @@ def fetch_session_data():
     connection.close()
     return jsonify(rows)
 
-@app.route('/fetch_all_percentages')
-def fetch_all_percentages():
+@app.route('/fetch_user_info')
+def fetch_user_info():
     email = request.args.get('email')
     try:
         scores = fetch_all_scores_from_email(email)
@@ -531,9 +438,6 @@ def fetch_all_percentages():
         all_data = []
         if not session_data:
             return jsonify({"error": "No session data found"}), 500
-        
-        #name = session_data[0][0]
-        #email = session_data[0][1]
 
         for idx, score in enumerate(scores):
             percentages = [
@@ -584,8 +488,8 @@ def student_data(email, name):
     Fetches and displays data for a specific student based on their email.
     '''
     try:
-        # Fetch all data from the /fetch_all_percentages endpoint
-        response = requests.get(url_for('fetch_all_percentages', email=email, _external=True))
+        # Fetch all data from the /fetch_user_info endpoint
+        response = requests.get(url_for('fetch_user_info', email=email, _external=True))
         
         all_data = response.json()
 
