@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             console.log("Fetched data:", data); 
             let dataDisplay = document.getElementById('data_display');
+            let numStudentsTakenTest = 0;
             dataDisplay.innerHTML = '';
 
             let table = document.createElement('table');
@@ -19,18 +20,21 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             data.forEach(user => {
                 let row = document.createElement('tr');
+                if (user[2] != null) { // Only display students who have finished the test
                 row.innerHTML = `
                     <td><a href="/student_data/${user[1]}/${user[0]}">${user[0]}</a></td>
                     <td>${user[2]}</td>
                     <td>${user[3]}</td>
                 `;
                 table.appendChild(row);
+                numStudentsTakenTest += 1;
+                }
             });
             dataDisplay.appendChild(table);
 
             // Display the number of students who took the test
             let studentCount = document.getElementById('student_count');
-            studentCount.innerHTML = `<p>Students who completed the test: <strong>${data.length}</strong></p>`;
+            studentCount.innerHTML = `<p>Students who completed the test: <strong>${numStudentsTakenTest}</strong></p>`;
         })
         .catch(error => {
             console.error('Error fetching data:', error);
