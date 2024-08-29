@@ -720,7 +720,7 @@ function fetch_data() {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'User Dominant Color Results',
+                        text: 'User Dominant Color Results For All Students',
                         color: 'black',
                         weight: 'bold',
                         font: {
