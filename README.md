@@ -6,7 +6,6 @@ Final project designed for _CSCI 298/398: Web Programming_.
 ### Contributers
 - [Jack Drabic](https://github.com/JackJack7890)
 - [Rafael Garcia Jr.](https://github.com/RGJ-713)
-- [Madison Meyers](https://github.com/20madi)
 - [Michael Romero](https://github.com/MichaelRomero1)
 
 ### Prerequisites:
