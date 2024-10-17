@@ -45,14 +45,14 @@ print(secrets.token_hex())
 A string of text should have been generated after the `print` command was used. Copy and paste the generated value in-between the `""` quotes in the `.env` file.
 
 After this, also create four new lines in the .env file as follows:
-MYSQL_HOST = ""
-MYSQL_USERNAME = ""
-MYSQL_PASSWORD = ""
-MYSQL_DB = ""
+MYSQL_HOST=""
+MYSQL_USER=""
+MYSQL_PASSWORD=""
+MYSQL_DATABASE=""
 
 The MYSQL_HOST will be localhost if running locally, or the IP address on Ec2
-The MYSQL_USERNAME and MYSQL_PASSWORD are whatever username and password you are using for the database
-The MYSQL_DB is the name of the database you are using. This will likely be trivia_db
+The MYSQL_USER and MYSQL_PASSWORD are whatever username and password you are using for the database
+The MYSQL_DATABASE is the name of the database you are using. This will likely be trivia_db
 
 ### 4. Creating the 'test_db' database
 
@@ -211,13 +211,13 @@ This will prompt you for your mysql password.
 
 - Finally, you must create a .env file which is individual to you. The .env file must look like this:
 ```
-GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"
-FLASK_SECRET_KEY = "YOUR_FLASK_SECRET_KEY"
-MYSQL_HOST = "localhost"
-MYSQL_USERNAME = "YOUR_USERNAME"
-MYSQL_PASSWORD = "YOUR_PASSWORD"
-MYSQL_DB = "TrueColors"
-GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET
+GOOGLE_CLIENT_ID="YOUR_GOOGLE_CLIENT_ID"
+FLASK_SECRET_KEY="YOUR_FLASK_SECRET_KEY"
+MYSQL_HOST="localhost"
+MYSQL_USER="YOUR_USERNAME"
+MYSQL_PASSWORD="YOUR_PASSWORD"
+MYSQL_DATABASE="TrueColors"
+GOOGLE_CLIENT_SECRET="YOUR_GOOGLE_CLIENT_SECRET
 ```
 In order to get a secure FLASK_SECRET_KEY, you can use python secrets. In order to do this, in your terminal, perform the following commands
 ```

@@ -156,7 +156,7 @@ def index():
 # Gets all the questions from the database
 @app.route('/getQuestions')
 def get_questions():
-    MYSQL_DB = os.getenv('MYSQL_DB')
+    MYSQL_DB = os.getenv('MYSQL_DATABASE')
     '''
     Returns the questions from the database.
     '''
@@ -512,10 +512,10 @@ def connectToMySQL():
     '''
     Connects to MySQL and returns a cursor and connection object.
     '''
-    MYSQL_USERNAME = os.getenv('MYSQL_USERNAME')
+    MYSQL_USERNAME = os.getenv('MYSQL_USER')
     MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
     MYSQL_HOST = os.getenv('MYSQL_HOST')
-    MYSQL_DB = os.getenv('MYSQL_DB')
+    MYSQL_DB = os.getenv('MYSQL_DATABASE')
 
     cnx = mysql.connector.connect(user=MYSQL_USERNAME, password=MYSQL_PASSWORD,
                                   host=MYSQL_HOST,
