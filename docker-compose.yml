@@ -1,0 +1,22 @@
+name: truecolors
+
+services:
+  flask:
+    build: .
+    env_file: ".env"
+    ports:
+      - "8080:80"
+    depends_on:
+      mariadb:
+        condition: service_started
+  mariadb:
+    image: "mariadb:10.5"
+    environment: 
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+    env_file: ".env"
+    volumes:
+      - "mariadb_data:/var/lib/mysql"
+      - "./database:/docket-entrypoint-initdb.d"
+
+volumes:
+  mariadb_data:
