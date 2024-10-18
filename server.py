@@ -156,12 +156,10 @@ def index():
 # Gets all the questions from the database
 @app.route('/getQuestions')
 def get_questions():
-    MYSQL_DB = os.getenv('MYSQL_DATABASE')
     '''
     Returns the questions from the database.
     '''
     cursor, connection = connectToMySQL()
-    use_db = f"USE {MYSQL_DB};"
     select = ""
 
     if request.args.get('group') == "1":
@@ -179,7 +177,6 @@ def get_questions():
     else:
         select = "SELECT * FROM questions WHERE question_num = 5 ORDER BY group_num;"
             
-    cursor.execute(use_db)
     cursor.execute(select)
         
     questions = cursor.fetchall()
@@ -202,8 +199,6 @@ def store_result():
     cursor, connection = connectToMySQL()
 
     # MySQL query to insert or update each group score
-    use_db = "USE TrueColors;"
-    cursor.execute(use_db)
 
     # Retrieve the highest test_id and increment it by 1
     cursor.execute("SELECT MAX(test_id) FROM responses")
@@ -259,14 +254,11 @@ def save_location():
     cursor, connection = connectToMySQL()
     
     # MySQL queries
-    use_db = "USE TrueColors;"
     insert_location = """
     INSERT INTO quiz (user_id, test_id, description)
     VALUES (%s, %s, %s)
     ON DUPLICATE KEY UPDATE description = VALUES(description);
     """
-
-    cursor.execute(use_db)
 
     # Retrieve the highest test_id and increment it by 1
     cursor.execute("SELECT MAX(test_id) FROM quiz")
@@ -287,8 +279,6 @@ def fetch_all_scores_from_email(email):
     Fetches all scores from the database and calculates the color scores for each user.
     '''
     cursor, connection = connectToMySQL()
-    use_db = "USE TrueColors;"
-    cursor.execute(use_db)
     cursor.execute("""
         SELECT user_id, test_id, question_num, group_num, score
         FROM responses
@@ -309,8 +299,6 @@ def fetch_all_scores():
     Fetches all scores from the database and calculates the color scores for each user.
     '''
     cursor, connection = connectToMySQL()
-    use_db = "USE TrueColors;"
-    cursor.execute(use_db)
     cursor.execute("""
         SELECT user_id, test_id, question_num, group_num, score
         FROM responses
@@ -396,8 +384,6 @@ def fetch_session_data():
     Grabs the session data from the database and returns it.
     '''
     cursor, connection = connectToMySQL()
-    use_db = "USE TrueColors;"
-    cursor.execute(use_db)
     query = query = """
     SELECT 
         s.name, 
@@ -422,8 +408,6 @@ def fetch_user_info():
     try:
         scores = fetch_all_scores_from_email(email)
         cursor, connection = connectToMySQL()
-        use_db = "USE TrueColors;"
-        cursor.execute(use_db)
         cursor.execute("SELECT name, email FROM session;")
         session_data = cursor.fetchall()
 
