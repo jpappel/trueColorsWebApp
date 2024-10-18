@@ -44,15 +44,15 @@ print(secrets.token_hex())
 
 A string of text should have been generated after the `print` command was used. Copy and paste the generated value in-between the `""` quotes in the `.env` file.
 
-After this, also create four new lines in the .env file as follows:
+After this, also create three new lines in the .env file as follows:
+```
 MYSQL_HOST=""
 MYSQL_USER=""
 MYSQL_PASSWORD=""
-MYSQL_DATABASE=""
+```
 
 The MYSQL_HOST will be localhost if running locally, or the IP address on Ec2
 The MYSQL_USER and MYSQL_PASSWORD are whatever username and password you are using for the database
-The MYSQL_DATABASE is the name of the database you are using. This will likely be trivia_db
 
 ### 4. Creating the 'test_db' database
 
