@@ -4,6 +4,8 @@ services:
   flask:
     build: .
     env_file: ".env"
+    environment:
+      MYSQL_DATABASE: "TrueColors"
     ports:
       - "8080:80"
     depends_on:
@@ -13,10 +15,11 @@ services:
     image: "mariadb:10.5"
     environment: 
       MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: "TrueColors"
     env_file: ".env"
     volumes:
       - "mariadb_data:/var/lib/mysql"
-      - "./database:/docket-entrypoint-initdb.d"
+      - "./database:/docker-entrypoint-initdb.d"
 
 volumes:
   mariadb_data:

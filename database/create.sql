@@ -1,5 +1,4 @@
 -- Create database
-DROP DATABASE IF EXISTS TrueColors;
 CREATE DATABASE IF NOT EXISTS TrueColors;
 USE TrueColors;
 
@@ -11,7 +10,7 @@ CREATE TABLE IF NOT EXISTS questions (
     word VARCHAR(255)
 );
 
-CREATE TABLE IF NOT EXISTS session ( 
+CREATE TABLE IF NOT EXISTS session (
     user_id VARCHAR(50),
     name VARCHAR(50),
     email VARCHAR(50)
